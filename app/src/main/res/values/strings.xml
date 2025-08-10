@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Paxel AR SpaceScan</string>
+
+    <!-- Home Screen -->
+    <string name="main_title">Paxel AR SpaceScan</string>
+    <string name="subtitle">Pengukuran Paket dengan AR</string>
+    <string name="start_measurement">Mulai Pengukuran</string>
+    <string name="history">Riwayat Pengukuran</string>
+
+    <!-- Instructions -->
+    <!-- Instructions -->
+    <string name="instruction_step_1">Langkah 1/3: Ketuk sudut pertama di alas paket</string>
+    <string name="instruction_step_2">Langkah 2/3: Ketuk sudut diagonal yang berlawanan</string>
+    <string name="instruction_step_3">Langkah 3/3: Arahkan ke atas &amp; ketuk untuk konfirmasi tinggi</string>
+    <string name="instruction_completed">Pengukuran selesai. Tekan "Kembali" untuk melihat hasil.</string>
+
+
+
+    <!-- Dialogs & Buttons -->
+    <string name="package_name_title">Masukkan Data Paket</string>
+    <string name="select_declared_size_prompt">Pilih ukuran deklarasi paket</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Batal</string>
+    <string name="undo">Ulangi</string>
+    <string name="reset">Reset</string>
+    <string name="save_measurement">Simpan Pengukuran</string>
+    <string name="saved">Tersimpan</string>
+    <string name="new_measurement">Pengukuran Baru</string>
+    <string name="default_package_name">Paket Tanpa Nama</string>
+    <string name="yes">Ya</string>
+    <string name="no">Tidak</string>
+
+    <!-- Results -->
+    <string name="measurement_results">Hasil Pengukuran</string>
+    <string name="dimensions">Dimensi</string>
+    <string name="length">Panjang</string>
+    <string name="width">Lebar</string>
+    <string name="height">Tinggi</string>
+    <string name="calculations">Kalkulasi</string>
+    <string name="volume">Volume</string>
+    <string name="volumetric_weight">Berat Volumetrik</string>
+
+    <!-- History -->
+    <string name="measurement_history">Riwayat Pengukuran</string>
+    <string name="no_measurements">Belum ada pengukuran</string>
+    <string name="search_hint">Cari nama paket...</string>
+    <string name="export_csv">Ekspor CSV</string>
+    <string name="delete_all">Hapus Semua</string>
+
+    <!-- AR & Permissions -->
+    <string name="detecting_surface">Gerakkan perangkat untuk mendeteksi permukaan</string>
+    <string name="ambil_bukti_foto">Ambil Foto</string>
+
+    <!-- Additional UI Strings -->
+    <string name="view_history">Lihat Riwayat</string>
+    <string name="version_info">Versi 1.0</string>
+
+    <!-- Content Descriptions -->
+    <string name="camera_icon">Ikon Kamera</string>
+    <string name="history_icon">Ikon Riwayat</string>
+    <string name="logo_description">Logo Paxel</string>
+
+    <!-- Spinner Options -->
+    <string-array name="package_sizes">
+        <item>Pilih Ukuran Deklarasi</item>
+        <item>Small</item>
+        <item>Medium</item>
+        <item>Large</item>
+    </string-array>
+</resources>

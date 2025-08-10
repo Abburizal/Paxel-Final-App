@@ -1,0 +1,75 @@
+[versions]
+# Plugin
+agp = "8.5.2"              # AGP terbaru yang stabil
+kotlin = "2.0.20"           # Kotlin stabil terbaru
+ksp = "2.0.20-1.0.24"       # KSP kompatibel dengan Kotlin 2.0.20
+room = "2.7.0"              # Room plugin version
+
+# Library utama
+coreKtx = "1.15.0"
+appcompat = "1.7.0"
+material = "1.12.0"
+constraintlayout = "2.2.0"
+lifecycle = "2.8.4"
+activityKtx = "1.9.2"
+roomLib = "2.7.0"
+coroutines = "1.9.0"
+cameraX = "1.4.0"
+arCore = "1.44.0"           # Use stable ARCore version
+sceneform = "1.23.0"        # Keep Sceneform 1.23.0 as latest stable
+
+# Testing
+junit = "4.13.2"
+junitExt = "1.2.1"
+espressoCore = "3.6.1"
+coroutinesTest = "1.9.0"
+androidxTestCore = "1.6.1"
+androidxJunitKtx = "1.2.1"
+
+[libraries]
+# AndroidX Core, Appcompat, Lifecycle
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
+androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
+androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycle" }
+androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activityKtx" }
+
+# UI
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+
+# Coroutines
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+
+# Room
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "roomLib" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomLib" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "roomLib" }
+
+# ARCore & Sceneform
+google-ar-core = { group = "com.google.ar", name = "core", version.ref = "arCore" }
+sceneform = { group = "com.gorisse.thomas.sceneform", name = "sceneform", version.ref = "sceneform" }
+
+# CameraX
+androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "cameraX" }
+androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "cameraX" }
+androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "cameraX" }
+androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "cameraX" }
+
+# Testing
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitExt" }
+androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "roomLib" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
+androidx-test-core-ktx = { group = "androidx.test", name = "core-ktx", version.ref = "androidxTestCore" }
+androidx-test-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxJunitKtx" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kotlin-parcelize = { id = "kotlin-parcelize", version.ref = "kotlin" }
+androidx-room = { id = "androidx.room", version.ref = "room" }

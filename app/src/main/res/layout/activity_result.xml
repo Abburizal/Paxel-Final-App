@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background_secondary"
+    tools:context=".ui.result.ResultActivity">
+
+    <!-- Toolbar -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        style="@style/Widget.PaxelAR.Toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:title="Hasil Pengukuran"
+        app:titleTextColor="@color/white"
+        app:navigationIcon="?attr/homeAsUpIndicator" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="32dp">
+
+            <!-- Header Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardHeader"
+                style="@style/Widget.PaxelAR.CardView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="20dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Hasil Pengukuran"
+                        android:textAppearance="@style/TextAppearance.PaxelAR.Title"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:id="@+id/tvPackageName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.PaxelAR.Subtitle"
+                        android:layout_marginBottom="4dp"
+                        tools:text="Paket Macbook Pro" />
+
+                    <TextView
+                        android:id="@+id/tvTimestamp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.PaxelAR.Caption"
+                        tools:text="08 Agu 2025, 19:53" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Dimensions Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardDimensions"
+                style="@style/Widget.PaxelAR.CardView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="20dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/cardHeader">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Dimensi &amp; Validasi"
+                        android:textAppearance="@style/TextAppearance.PaxelAR.Title"
+                        android:layout_marginBottom="16dp" />
+
+                    <include layout="@layout/item_result_row"
+                        android:id="@+id/rowPanjang"/>
+                    <include layout="@layout/item_result_row"
+                        android:id="@+id/rowLebar"/>
+                    <include layout="@layout/item_result_row"
+                        android:id="@+id/rowTinggi"/>
+                    <include layout="@layout/item_result_row"
+                        android:id="@+id/rowKategori"/>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/border_primary"
+                        android:layout_marginVertical="20dp"/>
+
+                    <include layout="@layout/item_result_row"
+                        android:id="@+id/rowDeklarasi"/>
+                    <include layout="@layout/item_result_row_badge"
+                        android:id="@+id/rowValidasi"/>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Calculations Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardVolume"
+                style="@style/Widget.PaxelAR.CardView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="20dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/cardDimensions">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Kalkulasi"
+                        android:textAppearance="@style/TextAppearance.PaxelAR.Title"
+                        android:layout_marginBottom="16dp" />
+
+                    <include layout="@layout/item_result_row"
+                        android:id="@+id/rowVolume"/>
+                    <include layout="@layout/item_result_row"
+                        android:id="@+id/rowBerat"/>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Action Buttons -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:layout_marginTop="24dp"
+                app:layout_constraintTop_toBottomOf="@id/cardVolume"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSave"
+                    style="@style/Widget.PaxelAR.Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="Simpan Pengukuran"
+                    app:icon="@drawable/ic_save"
+                    app:iconGravity="start"
+                    app:iconPadding="12dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnNewMeasurement"
+                    style="@style/Widget.PaxelAR.Button.Outlined"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="Pengukuran Baru"
+                    app:icon="@drawable/ic_refresh"
+                    app:iconGravity="start"
+                    app:iconPadding="12dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnViewHistory"
+                    style="@style/Widget.PaxelAR.Button.Text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Lihat Riwayat"
+                    app:icon="@drawable/ic_history"
+                    app:iconGravity="start"
+                    app:iconPadding="12dp" />
+
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </ScrollView>
+
+</LinearLayout>
