@@ -9,15 +9,15 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.paxel.arspacescan.R
-import com.paxel.arspacescan.data.model.PackageMeasurement
+import com.paxel.arspacescan.data.model.MeasurementResult
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 class MeasurementAdapter(
-    private val onItemClick: (PackageMeasurement) -> Unit,
-    private val onDeleteClick: (PackageMeasurement) -> Unit
-) : ListAdapter<PackageMeasurement, MeasurementAdapter.ViewHolder>(MeasurementDiffCallback()) {
+    private val onItemClick: (MeasurementResult) -> Unit,
+    private val onDeleteClick: (MeasurementResult) -> Unit
+) : ListAdapter<MeasurementResult, MeasurementAdapter.ViewHolder>(MeasurementDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -32,17 +32,23 @@ class MeasurementAdapter(
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val tvPackageName: TextView = itemView.findViewById(R.id.tvPackageName)
         private val tvDimensions: TextView = itemView.findViewById(R.id.tvDimensions)
+        private val tvTimestamp: TextView = itemView.findViewById(R.id.tvTimestamp)
         private val tvVolume: TextView = itemView.findViewById(R.id.tvVolume)
-        private val tvDate: TextView = itemView.findViewById(R.id.tvDate)
         private val btnDelete: ImageButton = itemView.findViewById(R.id.btnDelete)
 
-        fun bind(measurement: PackageMeasurement) {
-            tvPackageName.text = measurement.packageName
-            tvDimensions.text = "${measurement.length} × ${measurement.width} × ${measurement.height} cm"
-            tvVolume.text = "Volume: ${measurement.volume} cm³"
+        fun bind(measurement: MeasurementResult) {
+            val dateFormat = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
 
-            val dateFormat = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale("id", "ID"))
-            tvDate.text = dateFormat.format(Date(measurement.timestamp))
+            tvPackageName.text = measurement.packageName ?: "Pengukuran"
+            // Convert from meters to centimeters for display
+            val widthCm = String.format("%.1f", measurement.width * 100)
+            val heightCm = String.format("%.1f", measurement.height * 100)
+            val depthCm = String.format("%.1f", measurement.depth * 100)
+            tvDimensions.text = "${widthCm}×${heightCm}×${depthCm} cm"
+            tvTimestamp.text = dateFormat.format(Date(measurement.timestamp))
+            // Convert from cubic meters to cubic centimeters
+            val volumeCm3 = measurement.volume * 1_000_000
+            tvVolume.text = "${String.format("%.2f", volumeCm3)} cm³"
 
             itemView.setOnClickListener {
                 onItemClick(measurement)
@@ -54,12 +60,12 @@ class MeasurementAdapter(
         }
     }
 
-    class MeasurementDiffCallback : DiffUtil.ItemCallback<PackageMeasurement>() {
-        override fun areItemsTheSame(oldItem: PackageMeasurement, newItem: PackageMeasurement): Boolean {
+    private class MeasurementDiffCallback : DiffUtil.ItemCallback<MeasurementResult>() {
+        override fun areItemsTheSame(oldItem: MeasurementResult, newItem: MeasurementResult): Boolean {
             return oldItem.id == newItem.id
         }
 
-        override fun areContentsTheSame(oldItem: PackageMeasurement, newItem: PackageMeasurement): Boolean {
+        override fun areContentsTheSame(oldItem: MeasurementResult, newItem: MeasurementResult): Boolean {
             return oldItem == newItem
         }
     }

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Main Application Theme for API 27+ -->
+    <style name="Theme.PaxelARSpaceScan" parent="Theme.MaterialComponents.Light.DarkActionBar">
+        <!-- Primary Brand Colors -->
+        <item name="colorPrimary">@color/paxel_primary</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryVariant">@color/paxel_primary_dark</item>
+
+        <!-- Secondary Colors -->
+        <item name="colorSecondary">@color/paxel_accent</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryVariant">@color/paxel_primary_light</item>
+
+        <!-- Background & Surface -->
+        <item name="android:colorBackground">@color/background_primary</item>
+        <item name="colorOnBackground">@color/text_primary</item>
+        <item name="colorSurface">@color/surface_primary</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+
+        <!-- Status Bar -->
+        <item name="android:statusBarColor">@color/paxel_primary</item>
+        <item name="android:windowLightStatusBar">false</item>
+
+        <!-- Navigation Bar -->
+        <item name="android:navigationBarColor">@color/surface_primary</item>
+        <item name="android:windowLightNavigationBar">true</item>
+
+        <!-- Error Colors -->
+        <item name="colorError">@color/error</item>
+        <item name="colorOnError">@color/white</item>
+
+        <!-- Shape Appearances -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.PaxelAR.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.PaxelAR.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.PaxelAR.LargeComponent</item>
+    </style>
+</resources>

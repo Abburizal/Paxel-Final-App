@@ -71,15 +71,15 @@ class Box3DPreviewView @JvmOverloads constructor(
         }
 
         // Draw faces (from back to front for correct layering)
-        drawFace(canvas, projectedPoints, intArrayOf(2, 3, 7, 6), Color.parseColor("#FF6666")) // Back
-        drawFace(canvas, projectedPoints, intArrayOf(3, 0, 4, 7), Color.parseColor("#FF4D4D")) // Left
-        drawFace(canvas, projectedPoints, intArrayOf(0, 1, 2, 3), Color.parseColor("#FFE5E5")) // Bottom
-        drawFace(canvas, projectedPoints, intArrayOf(1, 2, 6, 5), Color.parseColor("#FF8080")) // Right
-        drawFace(canvas, projectedPoints, intArrayOf(0, 1, 5, 4), Color.parseColor("#FF9999")) // Front
-        drawFace(canvas, projectedPoints, intArrayOf(4, 5, 6, 7), Color.parseColor("#FFB3B3")) // Top
+        drawFace(canvas, projectedPoints, intArrayOf(2, 3, 7, 6), Color.parseColor("#C7B6FF")) // Back - medium purple tint
+        drawFace(canvas, projectedPoints, intArrayOf(3, 0, 4, 7), Color.parseColor("#9B7EF5")) // Left - darker purple
+        drawFace(canvas, projectedPoints, intArrayOf(0, 1, 2, 3), Color.parseColor("#E5E0FF")) // Bottom - light purple tint
+        drawFace(canvas, projectedPoints, intArrayOf(1, 2, 6, 5), Color.parseColor("#A688F5")) // Right - medium purple
+        drawFace(canvas, projectedPoints, intArrayOf(0, 1, 5, 4), Color.parseColor("#B39DFA")) // Front - light purple
+        drawFace(canvas, projectedPoints, intArrayOf(4, 5, 6, 7), Color.parseColor("#D4C7FF")) // Top - very light purple
 
         // Draw edges
-        paint.color = Color.parseColor("#FF0000")
+        paint.color = Color.parseColor("#6638e2")
         val edges = arrayOf(
             intArrayOf(0, 1), intArrayOf(1, 2), intArrayOf(2, 3), intArrayOf(3, 0), // Bottom
             intArrayOf(4, 5), intArrayOf(5, 6), intArrayOf(6, 7), intArrayOf(7, 4), // Top

@@ -3,12 +3,9 @@ package com.paxel.arspacescan.ui.main
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.view.HapticFeedbackConstants
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -16,22 +13,14 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
 import com.google.ar.core.ArCoreApk
 import com.paxel.arspacescan.R
+import com.paxel.arspacescan.ui.common.safeHapticFeedback
 import com.paxel.arspacescan.ui.history.HistoryActivity
 import com.paxel.arspacescan.ui.measurement.ARMeasurementActivity
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), PackageInputDialog.OnPackageInputListener {
 
     private val CAMERA_PERMISSION_CODE = 100
     private var isSplashScreen = true
-
-    // Extension function untuk haptic feedback yang aman
-    private fun View.safeHapticFeedback() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            performHapticFeedback(HapticFeedbackConstants.KEYBOARD_PRESS)
-        } else {
-            performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,12 +83,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun showPackageInputDialog() {
         val dialog = PackageInputDialog()
-        dialog.setOnPackageNameEnteredListener { packageName, declaredSize ->
-            val intent = Intent(this, ARMeasurementActivity::class.java)
-            intent.putExtra("PACKAGE_NAME", packageName)
-            intent.putExtra("DECLARED_SIZE", declaredSize)
-            startActivity(intent)
-        }
         dialog.show(supportFragmentManager, "PackageInputDialog")
     }
 
@@ -120,5 +103,15 @@ class MainActivity : AppCompatActivity() {
                 ).show()
             }
         }
+    }
+
+    // Implementation of OnPackageInputListener interface
+    override fun onPackageInput(packageName: String, declaredSize: String) {
+        // Handle package input data received from PackageInputDialog
+        // Start ARMeasurementActivity with the package information
+        val intent = Intent(this, ARMeasurementActivity::class.java)
+        intent.putExtra("PACKAGE_NAME", packageName)
+        intent.putExtra("DECLARED_SIZE", declaredSize)
+        startActivity(intent)
     }
 }

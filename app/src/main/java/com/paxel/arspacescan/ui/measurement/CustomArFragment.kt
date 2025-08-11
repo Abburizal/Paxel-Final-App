@@ -12,40 +12,60 @@ class CustomArFragment : ArFragment() {
         super.onAttach(context)
     }
     
-    override fun getSessionConfiguration(session: Session): Config {
+    override fun onCreateSessionConfig(session: Session): Config {
         val config = Config(session)
 
         try {
-            // Disable light estimation completely to prevent the crash
-            config.lightEstimationMode = Config.LightEstimationMode.DISABLED
+            // CRITICAL FIX: Completely disable light estimation to prevent crash
+            config.setLightEstimationMode(Config.LightEstimationMode.DISABLED)
 
             // Enable plane detection for measurement
-            config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
+            config.setPlaneFindingMode(Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL)
 
-            // Update focus mode for better tracking
-            config.updateMode = Config.UpdateMode.LATEST_CAMERA_IMAGE
+            // Set update mode for better tracking
+            config.setUpdateMode(Config.UpdateMode.LATEST_CAMERA_IMAGE)
 
-            // Additional safety configuration
-            config.focusMode = Config.FocusMode.AUTO
+            // Set focus mode
+            config.setFocusMode(Config.FocusMode.AUTO)
 
-            Log.d("CustomArFragment", "Session configuration created successfully")
+            Log.d("CustomArFragment", "Session configuration created successfully with light estimation DISABLED")
 
         } catch (e: Exception) {
             Log.e("CustomArFragment", "Error configuring session", e)
-            // Fallback to minimal configuration
-            config.lightEstimationMode = Config.LightEstimationMode.DISABLED
-            config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL
+            // Fallback to absolute minimal configuration
+            try {
+                config.setLightEstimationMode(Config.LightEstimationMode.DISABLED)
+                config.setPlaneFindingMode(Config.PlaneFindingMode.HORIZONTAL)
+            } catch (fallbackError: Exception) {
+                Log.e("CustomArFragment", "Even fallback configuration failed", fallbackError)
+            }
         }
 
         return config
     }
 
-    override fun setupSession(session: Session): Boolean {
+    override fun onResume() {
         try {
-            return super.setupSession(session)
+            super.onResume()
+
+            // Additional safety: ensure light estimation stays disabled
+            arSceneView?.let { sceneView ->
+                sceneView.planeRenderer.isEnabled = true
+                sceneView.planeRenderer.isVisible = true
+                Log.d("CustomArFragment", "Fragment resumed with plane rendering enabled")
+            }
+
         } catch (e: Exception) {
-            Log.e("CustomArFragment", "Setup session failed", e)
-            return false
+            Log.e("CustomArFragment", "Fragment resume failed", e)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        try {
+            Log.d("CustomArFragment", "Fragment paused successfully")
+        } catch (e: Exception) {
+            Log.e("CustomArFragment", "Fragment pause failed", e)
         }
     }
 }

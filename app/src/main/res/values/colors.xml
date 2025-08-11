@@ -1,73 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Primary Paxel Brand Colors -->
-    <color name="paxel_primary">#E53E3E</color>
-    <color name="paxel_primary_dark">#C53030</color>
-    <color name="paxel_primary_light">#FEB2B2</color>
-    <color name="paxel_accent">#FF6B6B</color>
+    <!-- Primary colors -->
+    <color name="primary">#2196F3</color>
+    <color name="primary_dark">#1976D2</color>
+    <color name="primary_light">#BBDEFB</color>
+    <color name="secondary">#FF4081</color>
+    <color name="secondary_dark">#C2185B</color>
 
-    <!-- Legacy color for backward compatibility -->
-    <color name="paxel_red">@color/paxel_primary</color>
+    <!-- Paxel brand colors (for compatibility) -->
+    <color name="paxel_primary">#2196F3</color>
+    <color name="paxel_primary_dark">#1976D2</color>
+    <color name="paxel_primary_light">#BBDEFB</color>
+    <color name="paxel_accent">#FF4081</color>
+    <color name="paxel_red">#F44336</color>
 
-    <!-- Neutral Colors -->
+    <color name="background_primary">#FFFFFF</color>
+    <color name="background_secondary">#F5F5F5</color>
+    <color name="surface_primary">#F5F5F5</color>
+    <!-- Background colors -->
+    <color name="background_color">#FFFFFF</color>
+    <color name="surface_color">#F5F5F5</color>
+    <color name="background_light">#FAFAFA</color>
+
+    <!-- Basic colors -->
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
-    <color name="gray_50">#F9FAFB</color>
-    <color name="gray_100">#F3F4F6</color>
-    <color name="gray_200">#E5E7EB</color>
-    <color name="gray_300">#D1D5DB</color>
-    <color name="gray_400">#9CA3AF</color>
-    <color name="gray_500">#6B7280</color>
-    <color name="gray_600">#4B5563</color>
-    <color name="gray_700">#374151</color>
-    <color name="gray_800">#1F2937</color>
-    <color name="gray_900">#111827</color>
+    <color name="gray">#9E9E9E</color>
+    <color name="gray_light">#F5F5F5</color>
+    <color name="gray_dark">#424242</color>
+    <color name="gray_500">#9E9E9E</color>
+    <color name="gray_600">#757575</color>
 
-    <!-- Text Colors -->
-    <color name="text_primary">@color/gray_900</color>
-    <color name="text_secondary">@color/gray_600</color>
-    <color name="text_tertiary">@color/gray_500</color>
-    <color name="text_disabled">@color/gray_400</color>
+    <!-- Status colors -->
+    <color name="success">#4CAF50</color>
+    <color name="success_dark">#388E3C</color>
+    <color name="error">#F44336</color>
+    <color name="error_dark">#D32F2F</color>
+    <color name="warning">#FF9800</color>
+    <color name="warning_light">#FFE0B2</color>
+    <color name="warning_dark">#F57C00</color>
+    <color name="info">#2196F3</color>
 
-    <!-- Background Colors -->
-    <color name="background_primary">@color/white</color>
-    <color name="background_secondary">@color/gray_50</color>
-    <color name="background_tertiary">@color/gray_100</color>
-    <color name="background_light">@color/gray_50</color>
+    <!-- Text colors -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_tertiary">#BDBDBD</color>
+    <color name="text_hint">#BDBDBD</color>
 
-    <!-- Surface Colors -->
-    <color name="surface_primary">@color/white</color>
-    <color name="surface_elevated">@color/white</color>
-    <color name="surface_overlay">@color/white</color>
+    <!-- AR measurement colors -->
+    <color name="ar_point_color">#F44336</color>
+    <color name="ar_line_color">#FFEB3B</color>
 
-    <!-- Status Colors -->
-    <color name="success">#22C55E</color>
-    <color name="success_light">#DCFCE7</color>
-    <color name="success_dark">#16A34A</color>
-    <color name="green_success">@color/success</color>
+    <!-- Border colors -->
+    <color name="border_primary">#E0E0E0</color>
 
-    <color name="warning">#F59E0B</color>
-    <color name="warning_light">#FEF3C7</color>
-    <color name="warning_dark">#D97706</color>
-    <color name="orange_warning">@color/warning</color>
-
-    <color name="error">#EF4444</color>
-    <color name="error_light">#FEE2E2</color>
-    <color name="error_dark">#DC2626</color>
-    <color name="red_danger">@color/error</color>
-
-    <color name="info">#3B82F6</color>
-    <color name="info_light">#DBEAFE</color>
-    <color name="info_dark">#2563EB</color>
-    <color name="blue_info">@color/info</color>
-
-    <!-- Border Colors -->
-    <color name="border_primary">@color/gray_200</color>
-    <color name="border_secondary">@color/gray_300</color>
-    <color name="border_focus">@color/paxel_primary</color>
-
-    <!-- Overlay Colors -->
-    <color name="overlay_light">#80FFFFFF</color>
-    <color name="overlay_dark">#80000000</color>
-    <color name="scrim">#52000000</color>
+    <!-- Card colors -->
+    <color name="card_background">#FFFFFF</color>
+    <color name="card_elevation">#E0E0E0</color>
 </resources>

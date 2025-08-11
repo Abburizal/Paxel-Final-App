@@ -68,9 +68,17 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
     private val visualNodes = mutableListOf<Node>()
     private var isArCoreSupported = true
 
+    // Price Estimation Variables
+    private var estimatedPrice = 0
+    private var packageSizeCategory = ""
+    private lateinit var tvPriceEstimation: TextView
+
     // store incoming extras so we can forward them later safely
     private var packageNameExtra: String? = null
     private var declaredSizeExtra: String? = null
+
+    // Toast spam prevention
+    private var lastToastTime = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -109,6 +117,9 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
         btnTakePhoto = findViewById(R.id.btnTakePhoto)
         cvTrackingHelp = findViewById(R.id.cvTrackingHelp)
 
+        // Initialize Price Estimation UI
+        tvPriceEstimation = findViewById(R.id.tvPriceEstimation)
+
         // Tambahkan tombol lanjutkan ke hasil
         val btnContinueToResult = findViewById<MaterialButton>(R.id.btnContinueToResult)
 
@@ -118,7 +129,7 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
         }
         btnReset.setOnClickListener {
             it.safeHapticFeedback()
-            viewModel.resetMeasurement()
+            resetMeasurement()
         }
         btnTakePhoto.setOnClickListener {
             it.safeHapticFeedback()
@@ -146,13 +157,23 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
             // add update listener
             arFragment?.arSceneView?.scene?.addOnUpdateListener(this)
 
-            // tap listener on plane - only accept taps when plane is tracking
+            // Enhanced tap listener with better error handling
             arFragment?.setOnTapArPlaneListener { hitResult, plane, _ ->
                 val fragment = arFragment ?: return@setOnTapArPlaneListener
+
+                // Enhanced plane tracking validation
                 if (plane.trackingState != TrackingState.TRACKING) {
                     Log.w("ARMeasurementActivity", "Tap diabaikan: plane belum tracking.")
+                    showUserFeedback("Tunggu hingga permukaan terdeteksi dengan baik")
                     return@setOnTapArPlaneListener
                 }
+
+                // Validate hit result quality
+                if (!isHitResultValid(hitResult, plane)) {
+                    showUserFeedback("Ketuk area yang lebih stabil untuk hasil terbaik")
+                    return@setOnTapArPlaneListener
+                }
+
                 if (viewModel.uiState.value.step != MeasurementStep.COMPLETED) {
                     fragment.view?.safeHapticFeedback()
                     val anchor = hitResult.createAnchor()
@@ -161,6 +182,7 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
                     }
                     if (anchorNode.anchor == null) {
                         Log.e("ARMeasurementActivity", "Anchor gagal dibuat.")
+                        showUserFeedback("Gagal membuat titik pengukuran, coba lagi")
                         return@setOnTapArPlaneListener
                     }
                     viewModel.handleArTap(anchorNode, this@ARMeasurementActivity)
@@ -170,6 +192,35 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
             Log.e("ARMeasurementActivity", "AR setup failed", e)
             Toast.makeText(this, "Gagal memulai AR: ${e.message}", Toast.LENGTH_LONG).show()
             finish()
+        }
+    }
+
+    /**
+     * Validates hit result quality for better measurement accuracy
+     */
+    private fun isHitResultValid(hitResult: com.google.ar.core.HitResult, plane: Plane): Boolean {
+        return try {
+            // Check if hit pose is within plane polygon
+            plane.isPoseInPolygon(hitResult.hitPose) &&
+                    // Ensure reasonable distance (0.1m to 5m)
+                    hitResult.distance in 0.1f..5.0f &&
+                    // Check tracking confidence
+                    plane.trackingState == TrackingState.TRACKING
+        } catch (e: Exception) {
+            Log.w("ARMeasurementActivity", "Hit result validation failed", e)
+            false
+        }
+    }
+
+    /**
+     * Shows user feedback for ARCore issues
+     */
+    private fun showUserFeedback(message: String) {
+        // Prevent toast spam - only show if last toast was >2 seconds ago
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastToastTime > 2000) {
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            lastToastTime = currentTime
         }
     }
 
@@ -252,6 +303,12 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
             MeasurementStep.COMPLETED -> {
                 val cornerPositions = state.corners.map { it.worldPosition }
                 if (cornerPositions.size == 8) drawWireframeBox(cornerPositions)
+
+                // Calculate package size and price when measurement is completed
+                state.finalResult?.let { result ->
+                    calculatePackageSizeAndPrice(result)
+                    updatePriceEstimationUI()
+                }
             }
 
             else -> { /* START or other states */
@@ -296,224 +353,238 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
         }
     }
 
-    private fun addSphere(position: Vector3) {
-        val fragment = arFragment ?: return
-        val renderable = sphereRenderable
-        if (renderable == null) {
-            Log.w("ARMeasurementActivity", "Sphere renderable belum siap")
+    /**
+     * Calculates package size category and estimated price in Indonesian Rupiah
+     */
+    private fun calculatePackageSizeAndPrice(result: MeasurementResult) {
+        try {
+            // Convert dimensions from meters to centimeters
+            val widthCm = result.width * 100
+            val heightCm = result.height * 100
+            val depthCm = result.depth * 100
+
+            // Calculate volume in cubic centimeters
+            val volumeCm3 = widthCm * heightCm * depthCm
+
+            // Determine package size category and price
+            when {
+                volumeCm3 <= 1000 -> {
+                    packageSizeCategory = "Kecil"
+                    estimatedPrice = 10000 // Rp 10.000
+                }
+                volumeCm3 <= 5000 -> {
+                    packageSizeCategory = "Sedang"
+                    estimatedPrice = 20000 // Rp 20.000
+                }
+                else -> {
+                    packageSizeCategory = "Besar"
+                    estimatedPrice = 30000 // Rp 30.000
+                }
+            }
+
+            Log.d("ARMeasurementActivity", "Package category: $packageSizeCategory, Volume: ${String.format("%.1f", volumeCm3)} cm³, Price: Rp$estimatedPrice")
+        } catch (e: Exception) {
+            Log.e("ARMeasurementActivity", "Error calculating package size and price", e)
+            packageSizeCategory = "Tidak diketahui"
+            estimatedPrice = 0
+        }
+    }
+
+    /**
+     * Updates the price estimation UI with calculated values
+     */
+    private fun updatePriceEstimationUI() {
+        try {
+            val priceText = if (estimatedPrice > 0) {
+                "Estimasi Harga: Rp${String.format("%,d", estimatedPrice)} ($packageSizeCategory)"
+            } else {
+                "Estimasi Harga: Tidak tersedia"
+            }
+            tvPriceEstimation.text = priceText
+            tvPriceEstimation.visibility = View.VISIBLE
+            Log.d("ARMeasurementActivity", "Price estimation UI updated: $priceText")
+        } catch (e: Exception) {
+            Log.e("ARMeasurementActivity", "Error updating price estimation UI", e)
+        }
+    }
+
+    /**
+     * Resets measurement state
+     */
+    private fun resetMeasurement() {
+        viewModel.reset()
+
+        // Reset price estimation
+        estimatedPrice = 0
+        packageSizeCategory = ""
+        tvPriceEstimation.visibility = View.GONE
+
+        Log.d("ARMeasurementActivity", "Measurement reset")
+    }
+
+    /**
+     * Proceeds to ResultActivity with measurement data and price estimation
+     */
+    private fun proceedToResults() {
+        val finalResult = viewModel.uiState.value.finalResult
+        if (finalResult == null) {
+            Toast.makeText(this, "Tidak ada hasil pengukuran untuk disimpan", Toast.LENGTH_SHORT).show()
             return
         }
-        val node = Node().apply {
-            this.renderable = renderable
-            parent = fragment.arSceneView.scene
-            worldPosition = position
-        }
-        visualNodes.add(node)
-    }
 
-    private fun drawBase(baseCorners: List<Vector3>) {
-        if (baseCorners.size < 4) return
-        for (i in 0..3) {
-            drawLine(baseCorners[i], baseCorners[(i + 1) % 4], "wireframe_edge")?.let {
-                visualNodes.add(it)
+        try {
+            val intent = Intent(this, ResultActivity::class.java).apply {
+                putExtra(ResultActivity.EXTRA_MEASUREMENT_RESULT, finalResult)
+                putExtra(ResultActivity.EXTRA_PACKAGE_NAME, packageNameExtra)
+                putExtra(ResultActivity.EXTRA_DECLARED_SIZE, declaredSizeExtra)
+
+                // Add price estimation data
+                putExtra("ESTIMATED_PRICE", estimatedPrice)
+                putExtra("PACKAGE_SIZE_CATEGORY", packageSizeCategory)
             }
-        }
-    }
 
-    private fun drawWireframeBox(corners: List<Vector3>, isPreview: Boolean = false) {
-        if (corners.size != 8) return
+            startActivity(intent)
+            finish()
 
-        val base = corners.subList(0, 4)
-        val top = corners.subList(4, 8)
-        val lineName = if (isPreview) "wireframe_edge_preview" else "wireframe_edge"
-
-        for (i in 0..3) {
-            drawLine(base[i], base[(i + 1) % 4], lineName)?.let { visualNodes.add(it) }
-            drawLine(top[i], top[(i + 1) % 4], lineName)?.let { visualNodes.add(it) }
-            drawLine(base[i], top[i], lineName)?.let { visualNodes.add(it) }
-        }
-    }
-
-    private fun drawLine(from: Vector3, to: Vector3, name: String): Node? {
-        val fragment = arFragment ?: return null
-        val baseRenderable = lineRenderable
-        if (baseRenderable == null) {
-            Log.w("ARMeasurementActivity", "Line renderable belum siap")
-            return null
-        }
-
-        val dir = Vector3.subtract(to, from)
-        val length = dir.length()
-        if (length <= 0f) return null
-
-        return Node().apply {
-            this.name = name
-            parent = fragment.arSceneView.scene
-            renderable = baseRenderable.makeCopy()
-            worldPosition = Vector3.add(from, to).scaled(0.5f)
-            worldRotation = Quaternion.lookRotation(dir.normalized(), Vector3.up())
-            localScale = Vector3(1f, 1f, length)
+        } catch (e: Exception) {
+            Log.e("ARMeasurementActivity", "Error proceeding to results", e)
+            Toast.makeText(this, "Gagal melanjutkan ke hasil: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun navigateToResult(result: MeasurementResult) {
         val intent = Intent(this, ResultActivity::class.java).apply {
-            putExtra("MEASUREMENT_RESULT", result)
-            putExtra("PACKAGE_NAME", packageNameExtra)
-            putExtra("DECLARED_SIZE", declaredSizeExtra)
+            putExtra(ResultActivity.EXTRA_MEASUREMENT_RESULT, result)
+            putExtra(ResultActivity.EXTRA_PACKAGE_NAME, packageNameExtra)
+            putExtra(ResultActivity.EXTRA_DECLARED_SIZE, declaredSizeExtra)
+
+            // Add price estimation data
+            putExtra("ESTIMATED_PRICE", estimatedPrice)
+            putExtra("PACKAGE_SIZE_CATEGORY", packageSizeCategory)
         }
+
         startActivity(intent)
         finish()
     }
 
     private fun takePhoto() {
-        val fragment = arFragment ?: run {
-            Toast.makeText(this, "AR scene belum siap", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val view = fragment.arSceneView
-        if (view.width == 0 || view.height == 0) {
-            Toast.makeText(this, "Ukuran preview belum tersedia", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val bitmap = view.drawToBitmap()
-
-        val handlerThread = HandlerThread("PixelCopier").apply { start() }
+        val fragment = arFragment ?: return
 
         try {
-            PixelCopy.request(view, bitmap, { copyResult ->
-                try {
-                    if (copyResult == PixelCopy.SUCCESS) {
-                        saveBitmapToGallery(bitmap)
-                    } else {
-                        runOnUiThread {
-                            Toast.makeText(
-                                this,
-                                "Gagal mengambil gambar: $copyResult",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    }
-                } catch (e: Exception) {
-                    Log.e("ARMeasurementActivity", "PixelCopy callback error", e)
-                    runOnUiThread {
-                        Toast.makeText(
-                            this,
-                            "Error saat mengambil gambar: ${e.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                } finally {
-                    handlerThread.quitSafely()
-                }
-            }, Handler(handlerThread.looper))
+            // Take screenshot of AR view
+            val bitmap = fragment.arSceneView.drawToBitmap()
+            saveBitmapToGallery(bitmap)
+            Toast.makeText(this, "Foto berhasil disimpan", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
-            handlerThread.quitSafely()
-            Log.e("ARMeasurementActivity", "PixelCopy request failed", e)
-            Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+            Log.e("ARMeasurementActivity", "Error taking photo", e)
+            Toast.makeText(this, "Gagal mengambil foto: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun saveBitmapToGallery(bitmap: Bitmap) {
-        val filename = "PaxelAR_${System.currentTimeMillis()}.jpg"
-        val values = ContentValues().apply {
-            put(MediaStore.Images.Media.DISPLAY_NAME, filename)
-            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-            put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/PaxelARValidator")
-            put(MediaStore.Images.Media.IS_PENDING, 1)
-        }
-
         try {
-            val resolver = contentResolver
-            val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-            if (uri == null) {
-                runOnUiThread {
-                    Toast.makeText(this, "Gagal membuat file", Toast.LENGTH_SHORT).show()
-                }
-                return
+            val values = ContentValues().apply {
+                put(MediaStore.Images.Media.DISPLAY_NAME, "AR_Measurement_${System.currentTimeMillis()}")
+                put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/PaxelAR")
             }
 
-            resolver.openOutputStream(uri)?.use { outputStream ->
-                if (bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)) {
-                    values.put(MediaStore.Images.Media.IS_PENDING, 0)
-                    resolver.update(uri, values, null, null)
-                    runOnUiThread {
-                        Toast.makeText(this, "Foto disimpan di Galeri", Toast.LENGTH_SHORT).show()
-                    }
-                } else {
-                    runOnUiThread {
-                        Toast.makeText(this, "Gagal kompresi gambar", Toast.LENGTH_SHORT).show()
-                    }
+            val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+            uri?.let {
+                contentResolver.openOutputStream(it)?.use { outputStream ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 95, outputStream)
                 }
             }
         } catch (e: Exception) {
-            Log.e("ARMeasurementActivity", "Error saving image", e)
-            runOnUiThread {
-                Toast.makeText(this, "Error menyimpan foto: ${e.message}", Toast.LENGTH_LONG).show()
-            }
+            Log.e("ARMeasurementActivity", "Error saving bitmap to gallery", e)
         }
     }
 
-    private fun proceedToResults() {
-        val currentState = viewModel.uiState.value
-        if (currentState.step == MeasurementStep.COMPLETED) {
-            val result = viewModel.getCalculatedResult()
-            if (result != null) {
-                navigateToResult(result)
-            } else {
-                Toast.makeText(this, "Pengukuran belum selesai", Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            Toast.makeText(this, "Selesaikan pengukuran terlebih dahulu", Toast.LENGTH_SHORT).show()
+    private fun addSphere(worldPosition: Vector3) {
+        val sphereNode = Node().apply {
+            renderable = sphereRenderable
+            localPosition = worldPosition
+            parent = arFragment?.arSceneView?.scene
         }
+        visualNodes.add(sphereNode)
+    }
+
+    private fun drawBase(corners: List<Vector3>) {
+        if (corners.size < 4) return
+
+        // Draw base edges
+        for (i in corners.indices) {
+            val start = corners[i]
+            val end = corners[(i + 1) % corners.size]
+            drawLine(start, end)
+        }
+    }
+
+    private fun drawWireframeBox(corners: List<Vector3>, isPreview: Boolean = false) {
+        if (corners.size < 8) return
+
+        val baseCorners = corners.take(4)
+        val topCorners = corners.drop(4)
+
+        // Draw base
+        for (i in baseCorners.indices) {
+            val start = baseCorners[i]
+            val end = baseCorners[(i + 1) % baseCorners.size]
+            drawLine(start, end, isPreview)
+        }
+
+        // Draw top
+        for (i in topCorners.indices) {
+            val start = topCorners[i]
+            val end = topCorners[(i + 1) % topCorners.size]
+            drawLine(start, end, isPreview)
+        }
+
+        // Draw vertical edges
+        for (i in baseCorners.indices) {
+            drawLine(baseCorners[i], topCorners[i], isPreview)
+        }
+    }
+
+    private fun drawLine(start: Vector3, end: Vector3, isPreview: Boolean = false) {
+        val lineNode = Node().apply {
+            renderable = lineRenderable
+
+            val direction = Vector3.subtract(end, start)
+            val length = direction.length()
+            // Fix: Use Vector3.multiply with proper static call or scale directly
+            val halfDirection = Vector3(direction.x * 0.5f, direction.y * 0.5f, direction.z * 0.5f)
+            val center = Vector3.add(start, halfDirection)
+
+            localPosition = center
+            localScale = Vector3(1f, 1f, length)
+
+            val rotation = Quaternion.lookRotation(direction.normalized(), Vector3.up())
+            localRotation = rotation
+
+            parent = arFragment?.arSceneView?.scene
+
+            if (isPreview) {
+                name = "wireframe_edge_preview"
+            }
+        }
+
+        visualNodes.add(lineNode)
     }
 
     override fun onResume() {
         super.onResume()
-        try {
-            arFragment?.onResume()
-            arFragment?.arSceneView?.resume()
-        } catch (e: Exception) {
-            Log.e("ARMeasurementActivity", "Error resume AR", e)
-            Toast.makeText(this, "Gagal melanjutkan AR: ${e.message}", Toast.LENGTH_SHORT).show()
-            // don't force finish here; optionally finish if AR is critical
-        }
+        arFragment?.arSceneView?.resume()
     }
 
     override fun onPause() {
-        try {
-            arFragment?.arSceneView?.pause()
-            arFragment?.onPause()
-        } catch (e: Exception) {
-            Log.e("ARMeasurementActivity", "Error pause AR", e)
-        }
         super.onPause()
+        arFragment?.arSceneView?.pause()
     }
 
     override fun onDestroy() {
-        try {
-            sphereRenderable?.let {
-                it.isShadowCaster = false
-                it.isShadowReceiver = false
-            }
-            sphereRenderable = null
-        } catch (e: Exception) {
-            Log.w("ARMeasurementActivity", "Error releasing sphereRenderable", e)
-        }
-
-        try {
-            lineRenderable?.let {
-                it.isShadowCaster = false
-                it.isShadowReceiver = false
-            }
-            lineRenderable = null
-        } catch (e: Exception) {
-            Log.w("ARMeasurementActivity", "Error releasing lineRenderable", e)
-        }
-
         super.onDestroy()
+        arFragment?.arSceneView?.destroy()
     }
 
 }

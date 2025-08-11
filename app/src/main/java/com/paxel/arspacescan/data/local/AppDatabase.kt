@@ -7,7 +7,7 @@ import com.paxel.arspacescan.data.model.PackageMeasurement
 @Database(
     entities = [PackageMeasurement::class],
     version = 1,
-    exportSchema = true
+    exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -24,9 +24,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "paxel_measurement_database"
-                )
-                    .fallbackToDestructiveMigration(dropAllTables = true)
-                    .build()
+                ).build()
                 INSTANCE = instance
                 instance
             }

@@ -7,24 +7,30 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface MeasurementDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertMeasurement(measurement: PackageMeasurement): Long
-
     @Query("SELECT * FROM package_measurements ORDER BY timestamp DESC")
     fun getAllMeasurements(): Flow<List<PackageMeasurement>>
 
-    @Query("SELECT * FROM package_measurements WHERE package_name LIKE :searchQuery ORDER BY timestamp DESC")
-    fun searchMeasurements(searchQuery: String): Flow<List<PackageMeasurement>>
-
-    @Query("SELECT * FROM package_measurements WHERE id = :id LIMIT 1")
+    @Query("SELECT * FROM package_measurements WHERE id = :id")
     suspend fun getMeasurementById(id: Long): PackageMeasurement?
 
+    @Insert
+    suspend fun insertMeasurement(measurement: PackageMeasurement): Long
+
+    @Update
+    suspend fun updateMeasurement(measurement: PackageMeasurement)
+
     @Delete
-    suspend fun deleteMeasurement(measurement: PackageMeasurement): Int
+    suspend fun deleteMeasurement(measurement: PackageMeasurement)
+
+    @Query("DELETE FROM package_measurements WHERE id = :id")
+    suspend fun deleteMeasurementById(id: Long)
 
     @Query("DELETE FROM package_measurements")
-    suspend fun deleteAllMeasurements(): Int
+    suspend fun deleteAllMeasurements()
 
-    @Query("SELECT * FROM package_measurements ORDER BY timestamp DESC")
-    suspend fun getAllMeasurementsForExport(): List<PackageMeasurement>
+    @Query("SELECT COUNT(*) FROM package_measurements")
+    suspend fun getMeasurementCount(): Int
+
+    @Query("SELECT * FROM package_measurements WHERE packageName LIKE :searchQuery ORDER BY timestamp DESC")
+    fun searchMeasurements(searchQuery: String): Flow<List<PackageMeasurement>>
 }

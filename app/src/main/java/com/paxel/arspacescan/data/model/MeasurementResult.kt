@@ -1,17 +1,16 @@
 package com.paxel.arspacescan.data.model
+
 import android.os.Parcelable
-import androidx.room.Entity
-import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-@Entity(tableName = "measurement_results")
 data class MeasurementResult(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
-    val length: Float,
-    val width: Float,
-    val height: Float,
-    val volume: Float
-
+    val id: Long = 0,
+    val width: Float,           // lebar dalam meter
+    val height: Float,          // tinggi dalam meter
+    val depth: Float,           // panjang dalam meter
+    val volume: Float,          // volume dalam m³
+    val timestamp: Long,        // waktu pengukuran
+    val packageName: String? = null,    // nama paket
+    val declaredSize: String? = null    // ukuran yang dinyatakan
 ) : Parcelable

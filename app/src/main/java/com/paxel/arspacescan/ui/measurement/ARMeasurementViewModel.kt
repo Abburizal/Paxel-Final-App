@@ -44,7 +44,7 @@ class ARMeasurementViewModel(private val calculator: MeasurementCalculator) : Vi
                     val p1 = currentState.points[0]
                     val p2 = tappedNode
                     val allBasePoints = calculator.calculateBaseCorners(p1, p2)
-                    _uiState.value = _uiState.value.copy(
+                    _uiState.value = currentState.copy(
                         step = MeasurementStep.BASE_DEFINED,
                         instructionTextId = R.string.instruction_step_3,
                         points = currentState.points + p2,
@@ -52,21 +52,23 @@ class ARMeasurementViewModel(private val calculator: MeasurementCalculator) : Vi
                     )
                 }
                 currentState.step == MeasurementStep.BASE_DEFINED -> {
+                    // Complete the box measurement
                     val heightPoint = tappedNode
                     val baseCorners = currentState.corners
-                    val result = calculator.calculate3DBox(baseCorners, heightPoint)
-                    if (result != null) {
+
+                    if (baseCorners.size >= 4) {
+                        val allCorners = calculator.calculateBoxCorners(baseCorners, heightPoint)
+                        val result = calculator.calculateMeasurement(allCorners)
+
                         _uiState.value = currentState.copy(
                             step = MeasurementStep.COMPLETED,
                             instructionTextId = R.string.instruction_completed,
                             points = currentState.points + heightPoint,
-                            corners = result.allCorners,
-                            isUndoEnabled = false,
-                            finalResult = result.measurement
+                            corners = allCorners,
+                            finalResult = result
                         )
-                    } else {
-                        Toast.makeText(context, "Pengukuran tidak valid, coba lagi.", Toast.LENGTH_SHORT).show()
-                        resetMeasurement()
+
+                        Toast.makeText(context, "Pengukuran selesai!", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -74,16 +76,44 @@ class ARMeasurementViewModel(private val calculator: MeasurementCalculator) : Vi
     }
 
     fun undoLastPoint() {
-        resetMeasurement()
+        viewModelScope.launch {
+            val currentState = _uiState.value
+
+            when {
+                currentState.points.size == 1 -> {
+                    _uiState.value = ARMeasurementUiState()
+                }
+                currentState.points.size == 2 && currentState.step == MeasurementStep.BASE_DEFINED -> {
+                    _uiState.value = currentState.copy(
+                        step = MeasurementStep.START,
+                        instructionTextId = R.string.instruction_step_2,
+                        points = currentState.points.dropLast(1),
+                        corners = emptyList()
+                    )
+                }
+                currentState.step == MeasurementStep.COMPLETED -> {
+                    _uiState.value = currentState.copy(
+                        step = MeasurementStep.BASE_DEFINED,
+                        instructionTextId = R.string.instruction_step_3,
+                        points = currentState.points.dropLast(1),
+                        corners = currentState.corners.take(4),
+                        finalResult = null
+                    )
+                }
+            }
+        }
     }
 
-    fun resetMeasurement() {
-        _uiState.value.points.forEach { it.anchor?.detach() }
+    fun reset() {
         _uiState.value = ARMeasurementUiState()
     }
 
-    // Method untuk mendapatkan hasil pengukuran yang sudah selesai
-    fun getMeasurementResult(): MeasurementResult? {
-        return _uiState.value.finalResult
+    fun navigateToResults() {
+        viewModelScope.launch {
+            val result = _uiState.value.finalResult
+            if (result != null) {
+                _navigationEvent.emit(result)
+            }
+        }
     }
 }
