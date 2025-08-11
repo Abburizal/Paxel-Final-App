@@ -457,20 +457,17 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
     }
 
     private fun proceedToResults() {
-        // Ambil hasil pengukuran dari ViewModel
-        val result = viewModel.getMeasurementResult() ?: run {
-            Toast.makeText(this, "Tidak ada hasil pengukuran untuk dilanjutkan", Toast.LENGTH_SHORT).show()
-            return
+        val currentState = viewModel.uiState.value
+        if (currentState.step == MeasurementStep.COMPLETED) {
+            val result = viewModel.getCalculatedResult()
+            if (result != null) {
+                navigateToResult(result)
+            } else {
+                Toast.makeText(this, "Pengukuran belum selesai", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(this, "Selesaikan pengukuran terlebih dahulu", Toast.LENGTH_SHORT).show()
         }
-
-        // Navigasi ke Activity hasil dengan membawa data hasil pengukuran
-        val intent = Intent(this, ResultActivity::class.java).apply {
-            putExtra("MEASUREMENT_RESULT", result)
-            putExtra("PACKAGE_NAME", packageNameExtra)
-            putExtra("DECLARED_SIZE", declaredSizeExtra)
-        }
-        startActivity(intent)
-        finish()
     }
 
     override fun onResume() {

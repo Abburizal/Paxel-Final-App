@@ -58,13 +58,20 @@ class ResultActivity : AppCompatActivity() {
     }
 
     private fun setupActionBar() {
-        // Since we're using NoActionBar theme, we can safely set the custom toolbar
+        // Check if toolbar exists in the layout before setting it up
         binding.toolbar?.let { toolbar ->
-            setSupportActionBar(toolbar)
-            supportActionBar?.apply {
-                setDisplayHomeAsUpEnabled(true)
-                setDisplayShowHomeEnabled(true)
-                title = "Hasil Pengukuran"
+            try {
+                setSupportActionBar(toolbar)
+                supportActionBar?.apply {
+                    setDisplayHomeAsUpEnabled(true)
+                    setDisplayShowHomeEnabled(true)
+                    title = "Hasil Pengukuran"
+                }
+            } catch (e: IllegalStateException) {
+                Log.e("ResultActivity", "ActionBar setup failed: ${e.message}")
+                // If there's a conflict, just set the title directly on the toolbar
+                toolbar.title = "Hasil Pengukuran"
+                toolbar.setNavigationOnClickListener { onBackPressed() }
             }
         }
     }
