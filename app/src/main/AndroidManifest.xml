@@ -16,7 +16,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.PaxelARSpaceScan"
+        android:theme="@style/Theme.PaxelARValidator"
         tools:targetApi="31">
 
         <activity
@@ -28,13 +28,17 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".ui.measurement.ARMeasurementActivity"
-            android:theme="@style/Theme.PaxelARSpaceScan.NoActionBar" />
+        <activity
+            android:name=".ui.measurement.ARMeasurementActivity"
+            android:theme="@style/Theme.PaxelARValidator" />
 
-        <activity android:name=".ui.result.ResultActivity"
-            android:theme="@style/Theme.PaxelARSpaceScan.NoActionBar.Result" />
+        <activity
+            android:name=".ui.result.ResultActivity"
+            android:theme="@style/Theme.PaxelARValidator" />
 
-        <activity android:name=".ui.history.HistoryActivity" />
+        <activity
+            android:name=".ui.history.HistoryActivity"
+            android:theme="@style/Theme.PaxelARValidator" />
 
         <meta-data
             android:name="com.google.ar.core"

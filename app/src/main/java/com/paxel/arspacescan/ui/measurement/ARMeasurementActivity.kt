@@ -2,7 +2,9 @@ package com.paxel.arspacescan.ui.measurement
 
 import android.content.ContentValues
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
@@ -14,6 +16,8 @@ import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.drawToBitmap
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -79,6 +83,15 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
 
     // Toast spam prevention
     private var lastToastTime = 0L
+
+    // Photo capture state
+    private var pendingPhotoBitmap: Bitmap? = null
+
+    // Photo capture constants
+    companion object {
+        private const val STORAGE_PERMISSION_REQUEST_CODE = 100
+        private const val WRITE_EXTERNAL_STORAGE = android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -467,36 +480,226 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
         finish()
     }
 
+    /**
+     * Improved photo capture with better validation and debugging
+     */
     private fun takePhoto() {
-        val fragment = arFragment ?: return
+        val fragment = arFragment ?: run {
+            Toast.makeText(this, "AR Fragment tidak tersedia", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Validate AR scene is ready
+        val arSceneView = fragment.arSceneView
+        if (arSceneView.arFrame == null) {
+            Toast.makeText(this, "AR belum siap, tunggu sebentar...", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Check if camera is tracking
+        val frame = arSceneView.arFrame
+        if (frame?.camera?.trackingState != TrackingState.TRACKING) {
+            Toast.makeText(this, "Tunggu hingga kamera AR tracking dengan baik", Toast.LENGTH_SHORT).show()
+            return
+        }
 
         try {
-            // Take screenshot of AR view
+            Log.d("ARMeasurementActivity", "Starting photo capture process...")
+
+            // Check storage permission for Android 6.0+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                ContextCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+
+                Log.d("ARMeasurementActivity", "Requesting storage permission...")
+                // Capture bitmap first, then request permission
+                val bitmap = fragment.arSceneView.drawToBitmap()
+
+                // Validate bitmap is not empty
+                if (bitmap.width == 0 || bitmap.height == 0) {
+                    Toast.makeText(this, "Gagal mengambil screenshot AR - layar kosong", Toast.LENGTH_SHORT).show()
+                    return
+                }
+
+                Log.d("ARMeasurementActivity", "Bitmap captured: ${bitmap.width}x${bitmap.height}")
+                pendingPhotoBitmap = bitmap
+                ActivityCompat.requestPermissions(this, arrayOf(WRITE_EXTERNAL_STORAGE), STORAGE_PERMISSION_REQUEST_CODE)
+                return
+            }
+
+            // Take screenshot and save directly if permission already granted
+            Log.d("ARMeasurementActivity", "Taking screenshot with existing permissions...")
             val bitmap = fragment.arSceneView.drawToBitmap()
+
+            // Validate bitmap is not empty
+            if (bitmap.width == 0 || bitmap.height == 0) {
+                Toast.makeText(this, "Gagal mengambil screenshot AR - layar kosong", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            Log.d("ARMeasurementActivity", "Bitmap captured successfully: ${bitmap.width}x${bitmap.height}")
             saveBitmapToGallery(bitmap)
-            Toast.makeText(this, "Foto berhasil disimpan", Toast.LENGTH_SHORT).show()
+
         } catch (e: Exception) {
             Log.e("ARMeasurementActivity", "Error taking photo", e)
             Toast.makeText(this, "Gagal mengambil foto: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
+    /**
+     * Improved bitmap saving with better error handling and user feedback
+     */
     private fun saveBitmapToGallery(bitmap: Bitmap) {
         try {
+            Log.d("ARMeasurementActivity", "Starting to save bitmap to gallery...")
+
+            // For Android 10+ (API 29+), use MediaStore API
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                saveBitmapToGalleryQ(bitmap)
+            } else {
+                // For older versions, use legacy method
+                saveBitmapToGalleryLegacy(bitmap)
+            }
+
+        } catch (e: Exception) {
+            Log.e("ARMeasurementActivity", "Error saving bitmap to gallery", e)
+            Toast.makeText(this, "Gagal menyimpan foto: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    /**
+     * Save bitmap for Android 10+ using scoped storage
+     */
+    private fun saveBitmapToGalleryQ(bitmap: Bitmap) {
+        try {
+            val timestamp = System.currentTimeMillis()
+            val filename = "AR_Measurement_$timestamp.jpg"
+
             val values = ContentValues().apply {
-                put(MediaStore.Images.Media.DISPLAY_NAME, "AR_Measurement_${System.currentTimeMillis()}")
+                put(MediaStore.Images.Media.DISPLAY_NAME, filename)
                 put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
                 put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/PaxelAR")
+                put(MediaStore.Images.Media.IS_PENDING, 1)
             }
 
             val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-            uri?.let {
-                contentResolver.openOutputStream(it)?.use { outputStream ->
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 95, outputStream)
+
+            if (uri != null) {
+                contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    val success = bitmap.compress(Bitmap.CompressFormat.JPEG, 95, outputStream)
+                    if (success) {
+                        // Mark as not pending
+                        values.clear()
+                        values.put(MediaStore.Images.Media.IS_PENDING, 0)
+                        contentResolver.update(uri, values, null, null)
+
+                        Log.d("ARMeasurementActivity", "Photo saved successfully to $uri")
+                        Toast.makeText(this, "Foto berhasil disimpan ke galeri!", Toast.LENGTH_SHORT).show()
+
+                        // Show user where to find the photo
+                        showPhotoSavedDialog(filename)
+                    } else {
+                        contentResolver.delete(uri, null, null)
+                        Toast.makeText(this, "Gagal mengkompresi foto", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } else {
+                Toast.makeText(this, "Gagal membuat file foto di galeri", Toast.LENGTH_SHORT).show()
+            }
+
+        } catch (e: Exception) {
+            Log.e("ARMeasurementActivity", "Error saving bitmap with MediaStore Q", e)
+            Toast.makeText(this, "Gagal menyimpan foto: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    /**
+     * Save bitmap for Android 9 and below
+     */
+    private fun saveBitmapToGalleryLegacy(bitmap: Bitmap) {
+        try {
+            val timestamp = System.currentTimeMillis()
+            val filename = "AR_Measurement_$timestamp.jpg"
+
+            val values = ContentValues().apply {
+                put(MediaStore.Images.Media.DISPLAY_NAME, filename)
+                put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+                put(MediaStore.Images.Media.DATE_ADDED, timestamp / 1000)
+                put(MediaStore.Images.Media.DATE_TAKEN, timestamp)
+            }
+
+            val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+
+            if (uri != null) {
+                contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    val success = bitmap.compress(Bitmap.CompressFormat.JPEG, 95, outputStream)
+                    if (success) {
+                        Log.d("ARMeasurementActivity", "Photo saved successfully (legacy) to $uri")
+                        Toast.makeText(this, "Foto berhasil disimpan ke galeri!", Toast.LENGTH_SHORT).show()
+                        showPhotoSavedDialog(filename)
+                    } else {
+                        contentResolver.delete(uri, null, null)
+                        Toast.makeText(this, "Gagal mengkompresi foto", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } else {
+                Toast.makeText(this, "Gagal membuat file foto di galeri", Toast.LENGTH_SHORT).show()
+            }
+
+        } catch (e: Exception) {
+            Log.e("ARMeasurementActivity", "Error saving bitmap with legacy method", e)
+            Toast.makeText(this, "Gagal menyimpan foto: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    /**
+     * Show dialog confirming photo was saved
+     */
+    private fun showPhotoSavedDialog(filename: String) {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Foto Tersimpan")
+            .setMessage("Foto pengukuran AR berhasil disimpan dengan nama:\n$filename\n\nCek di Galeri > Album PaxelAR")
+            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+            .setNegativeButton("Buka Galeri") { _, _ ->
+                // Open gallery to show the saved photo
+                try {
+                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                        type = "image/*"
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    }
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    Log.e("ARMeasurementActivity", "Failed to open gallery", e)
                 }
             }
-        } catch (e: Exception) {
-            Log.e("ARMeasurementActivity", "Error saving bitmap to gallery", e)
+            .show()
+    }
+
+    /**
+     * Handle permission request results
+     */
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        when (requestCode) {
+            STORAGE_PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Permission granted, save the pending bitmap
+                    pendingPhotoBitmap?.let { bitmap ->
+                        saveBitmapToGallery(bitmap)
+                        pendingPhotoBitmap = null
+                    } ?: run {
+                        Toast.makeText(this, "Tidak ada foto untuk disimpan", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    // Permission denied
+                    Toast.makeText(this, "Izin penyimpanan diperlukan untuk menyimpan foto", Toast.LENGTH_LONG).show()
+                    pendingPhotoBitmap = null
+                }
+            }
         }
     }
 
@@ -552,7 +755,6 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
 
             val direction = Vector3.subtract(end, start)
             val length = direction.length()
-            // Fix: Use Vector3.multiply with proper static call or scale directly
             val halfDirection = Vector3(direction.x * 0.5f, direction.y * 0.5f, direction.z * 0.5f)
             val center = Vector3.add(start, halfDirection)
 

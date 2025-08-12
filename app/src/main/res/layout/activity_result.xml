@@ -4,20 +4,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_color"
+    android:background="@color/background_light_cream"
     tools:context=".ui.result.ResultActivity">
 
     <!-- Toolbar -->
-    <androidx.appcompat.widget.Toolbar
+    <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@color/primary"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         app:title="Hasil Pengukuran"
         app:titleTextColor="@color/white" />
 
@@ -25,6 +23,7 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:fillViewport="true"
         app:layout_constraintBottom_toTopOf="@+id/bottomButtonContainer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -36,208 +35,332 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Package Information Card -->
+            <!-- Combined Measurement Information Card -->
             <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.PaxelAR.CardView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
+                android:layout_marginBottom="16dp">
 
-                <LinearLayout
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="24dp">
 
-                    <TextView
+                    <!-- Vertical Guideline at 40% -->
+                    <androidx.constraintlayout.widget.Guideline
+                        android:id="@+id/guideline_40"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Informasi Paket"
-                        android:textColor="@color/text_primary"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:orientation="vertical"
+                        app:layout_constraintGuide_percent="0.4" />
+
+                    <!-- Package Information Section -->
+                    <TextView
+                        android:id="@+id/tvPackageTitle"
+                        style="?attr/textAppearanceTitleMedium"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="@string/package_info"
+                        android:textColor="@color/text_dark_gray"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <!-- Package Name -->
+                    <TextView
+                        android:id="@+id/tvPackageLabel"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="Nama Paket"
+                        android:textColor="@color/text_medium_gray"
+                        app:layout_constraintEnd_toStartOf="@+id/guideline_40"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tvPackageTitle" />
 
                     <TextView
                         android:id="@+id/tvPackageName"
-                        android:layout_width="wrap_content"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Nama Paket: Loading..."
-                        android:textColor="@color/text_secondary"
-                        android:textSize="14sp" />
+                        android:layout_marginStart="8dp"
+                        android:text="Loading..."
+                        android:textColor="@color/text_dark_gray"
+                        android:textStyle="bold"
+                        app:layout_constraintBaseline_toBaselineOf="@+id/tvPackageLabel"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="@+id/guideline_40" />
+
+                    <!-- Declared Size -->
+                    <TextView
+                        android:id="@+id/tvDeclaredLabel"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Ukuran Deklarasi"
+                        android:textColor="@color/text_medium_gray"
+                        app:layout_constraintEnd_toStartOf="@+id/guideline_40"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tvPackageLabel" />
 
                     <TextView
                         android:id="@+id/tvDeclaredSize"
-                        android:layout_width="wrap_content"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Ukuran Deklarasi: Loading..."
-                        android:textColor="@color/text_secondary"
-                        android:textSize="14sp" />
+                        android:layout_marginStart="8dp"
+                        android:text="Loading..."
+                        android:textColor="@color/text_dark_gray"
+                        android:textStyle="bold"
+                        app:layout_constraintBaseline_toBaselineOf="@+id/tvDeclaredLabel"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="@+id/guideline_40" />
+
+                    <!-- Timestamp -->
+                    <TextView
+                        android:id="@+id/tvTimestampLabel"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Waktu"
+                        android:textColor="@color/text_medium_gray"
+                        app:layout_constraintEnd_toStartOf="@+id/guideline_40"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tvDeclaredLabel" />
 
                     <TextView
                         android:id="@+id/tvTimestamp"
-                        android:layout_width="wrap_content"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Waktu: Loading..."
-                        android:textColor="@color/text_secondary"
-                        android:textSize="14sp" />
+                        android:layout_marginStart="8dp"
+                        android:text="Loading..."
+                        android:textColor="@color/text_dark_gray"
+                        android:textStyle="bold"
+                        app:layout_constraintBaseline_toBaselineOf="@+id/tvTimestampLabel"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="@+id/guideline_40" />
 
-                </LinearLayout>
+                    <!-- Divider -->
+                    <View
+                        android:id="@+id/divider1"
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="24dp"
+                        android:background="@color/divider"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tvTimestampLabel" />
 
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Measurement Results Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
+                    <!-- Measurement Results Section -->
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:id="@+id/tvMeasurementTitle"
+                        style="?attr/textAppearanceTitleMedium"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Hasil Pengukuran"
-                        android:textColor="@color/text_primary"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:layout_marginTop="24dp"
+                        android:text="@string/measurement_results"
+                        android:textColor="@color/text_dark_gray"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/divider1" />
 
-                    <!-- Dimensions Grid -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
+                    <!-- Width -->
+                    <TextView
+                        android:id="@+id/tvWidthLabel"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:orientation="vertical">
+                        android:text="@string/width_label"
+                        android:textColor="@color/text_medium_gray"
+                        app:layout_constraintEnd_toStartOf="@+id/guideline_40"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tvMeasurementTitle" />
 
-                        <!-- Width -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
-                            android:orientation="horizontal">
+                    <TextView
+                        android:id="@+id/tvWidth"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/default_measurement"
+                        android:textColor="@color/primary"
+                        android:textStyle="bold"
+                        app:layout_constraintBaseline_toBaselineOf="@+id/tvWidthLabel"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="@+id/guideline_40" />
 
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Lebar:"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="14sp" />
+                    <!-- Height -->
+                    <TextView
+                        android:id="@+id/tvHeightLabel"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="@string/height_label"
+                        android:textColor="@color/text_dark_gray"
+                        app:layout_constraintEnd_toStartOf="@+id/guideline_40"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tvWidthLabel" />
 
-                            <TextView
-                                android:id="@+id/tvWidth"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="0.0 cm"
-                                android:textColor="@color/text_primary"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/tvHeight"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/default_measurement"
+                        android:textColor="@color/primary"
+                        android:textStyle="bold"
+                        app:layout_constraintBaseline_toBaselineOf="@+id/tvHeightLabel"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="@+id/guideline_40" />
 
-                        </LinearLayout>
+                    <!-- Depth -->
+                    <TextView
+                        android:id="@+id/tvDepthLabel"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="@string/length_label"
+                        android:textColor="@color/text_medium_gray"
+                        app:layout_constraintEnd_toStartOf="@+id/guideline_40"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tvHeightLabel" />
 
-                        <!-- Height -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
-                            android:orientation="horizontal">
+                    <TextView
+                        android:id="@+id/tvDepth"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/default_measurement"
+                        android:textColor="@color/primary"
+                        android:textStyle="bold"
+                        app:layout_constraintBaseline_toBaselineOf="@+id/tvDepthLabel"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="@+id/guideline_40" />
 
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Tinggi:"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="14sp" />
+                    <!-- Volume -->
+                    <TextView
+                        android:id="@+id/tvVolumeLabel"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="@string/volume_label"
+                        android:textColor="@color/text_medium_gray"
+                        app:layout_constraintEnd_toStartOf="@+id/guideline_40"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tvDepthLabel" />
 
-                            <TextView
-                                android:id="@+id/tvHeight"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="0.0 cm"
-                                android:textColor="@color/text_primary"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/tvVolume"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/default_volume"
+                        android:textColor="@color/primary"
+                        android:textStyle="bold"
+                        app:layout_constraintBaseline_toBaselineOf="@+id/tvVolumeLabel"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="@+id/guideline_40" />
 
-                        </LinearLayout>
+                    <!-- Divider -->
+                    <View
+                        android:id="@+id/divider2"
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="24dp"
+                        android:background="@color/divider"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tvVolumeLabel" />
 
-                        <!-- Depth -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
-                            android:orientation="horizontal">
+                    <!-- Price Estimation Section -->
+                    <TextView
+                        android:id="@+id/tvPriceTitle"
+                        style="?attr/textAppearanceTitleMedium"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        android:text="@string/price_estimation"
+                        android:textColor="@color/text_dark_gray"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/divider2" />
 
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Panjang:"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="14sp" />
+                    <!-- Estimated Price -->
+                    <TextView
+                        android:id="@+id/tvPriceLabel"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="Estimasi"
+                        android:textColor="@color/text_medium_gray"
+                        app:layout_constraintEnd_toStartOf="@+id/guideline_40"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tvPriceTitle" />
 
-                            <TextView
-                                android:id="@+id/tvDepth"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="0.0 cm"
-                                android:textColor="@color/text_primary"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/tvEstimatedPrice"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/default_price"
+                        android:textColor="@color/accent_highlight"
+                        android:textStyle="bold"
+                        app:layout_constraintBaseline_toBaselineOf="@+id/tvPriceLabel"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="@+id/guideline_40" />
 
-                        </LinearLayout>
+                    <!-- Category -->
+                    <TextView
+                        android:id="@+id/tvCategoryLabel"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Kategori"
+                        android:textColor="@color/text_medium_gray"
+                        app:layout_constraintEnd_toStartOf="@+id/guideline_40"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tvPriceLabel" />
 
-                        <!-- Volume -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal">
+                    <TextView
+                        android:id="@+id/tvSizeCategory"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Sedang"
+                        android:textColor="@color/text_dark_gray"
+                        android:textStyle="bold"
+                        app:layout_constraintBaseline_toBaselineOf="@+id/tvCategoryLabel"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="@+id/guideline_40" />
 
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Volume:"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="14sp" />
-
-                            <TextView
-                                android:id="@+id/tvVolume"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="0.0 cm³"
-                                android:textColor="@color/text_primary"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                </LinearLayout>
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Price Estimation Card -->
+            <!-- Price Estimation Card (Referenced in Kotlin code) -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cvPriceEstimation"
+                style="@style/Widget.PaxelAR.CardView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:visibility="gone"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="@color/primary_light"
-                tools:visibility="visible">
+                android:visibility="visible">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -249,64 +372,57 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Estimasi Harga"
-                        android:textColor="@color/text_primary"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textColor="@color/primary" />
 
                     <TextView
-                        android:id="@+id/tvEstimatedPrice"
+                        android:id="@+id/tvEstimatedPriceValue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Rp 20.000 (Sedang)"
-                        android:textColor="@color/primary"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+                        android:text="Rp25.000"
+                        android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                        android:textColor="@color/on_surface" />
 
                     <TextView
-                        android:id="@+id/tvSizeCategory"
+                        android:id="@+id/tvSizeCategoryValue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Kategori: Sedang"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="14sp" />
+                        android:text="Kategori: Medium"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="@color/on_surface_variant" />
 
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Save Status Card -->
+            <!-- Save Status Card (Referenced in Kotlin code) -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cvSaveStatus"
+                style="@style/Widget.PaxelAR.CardView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:visibility="gone"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                tools:visibility="visible">
+                android:visibility="gone">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:orientation="vertical"
                     android:padding="16dp">
 
                     <TextView
                         android:id="@+id/tvSaveStatus"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Status: Tersimpan"
-                        android:textColor="@color/success"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
+                        android:text="Status penyimpanan akan ditampilkan di sini"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="@color/on_surface" />
 
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
-
         </LinearLayout>
 
     </ScrollView>
@@ -316,7 +432,7 @@
         android:id="@+id/bottomButtonContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white"
+        android:background="@color/surface_cream"
         android:elevation="8dp"
         android:orientation="horizontal"
         android:padding="16dp"
@@ -324,27 +440,28 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
+        <!-- Primary Button: Save Result -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSaveResult"
-            style="@style/Widget.MaterialComponents.Button"
+            style="@style/Widget.PaxelAR.Button"
             android:layout_width="0dp"
-            android:layout_height="56dp"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
             android:text="@string/btn_save"
             app:backgroundTint="@color/primary"
             app:icon="@drawable/ic_save" />
 
+        <!-- Secondary Button: New Measurement -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnNewMeasurement"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="@style/Widget.PaxelAR.Button.Outlined"
             android:layout_width="0dp"
-            android:layout_height="56dp"
+            android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:text="@string/btn_new_measurement"
-            app:icon="@drawable/ic_add"
-            app:strokeColor="@color/primary" />
+            app:icon="@drawable/ic_add" />
 
     </LinearLayout>
 

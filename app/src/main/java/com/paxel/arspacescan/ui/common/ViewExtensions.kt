@@ -9,8 +9,12 @@ import android.view.View
  */
 fun View.safeHapticFeedback(feedbackConstant: Int = HapticFeedbackConstants.VIRTUAL_KEY) {
     try {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            performHapticFeedback(feedbackConstant, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Use modern haptic feedback without deprecated flags
+            performHapticFeedback(feedbackConstant)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // For older versions, use alternative approach
+            performHapticFeedback(feedbackConstant)
         } else {
             performHapticFeedback(feedbackConstant)
         }
@@ -26,8 +30,13 @@ fun View.safeHapticFeedback(feedbackConstant: Int = HapticFeedbackConstants.VIRT
 fun View.safeClickHapticFeedback() {
     try {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Use CONFIRM for modern devices
             performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Use VIRTUAL_KEY for older devices
+            performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
         } else {
+            // Fallback for very old devices
             performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
         }
     } catch (e: Exception) {

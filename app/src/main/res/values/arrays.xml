@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Package size options for the dropdown -->
     <string-array name="package_size_options">
-        <item>Kecil (hingga 30cm)</item>
-        <item>Sedang (30-60cm)</item>
-        <item>Besar (60-100cm)</item>
-        <item>Sangat Besar (lebih dari 100cm)</item>
+        <item>Kecil (Small) - max 10cm x 10cm x 10cm</item>
+        <item>Sedang (Medium) - max 20cm x 20cm x 20cm</item>
+        <item>Besar (Large) - max 30cm x 30cm x 30cm</item>
+        <item>Ekstra Besar (XL) - max 40cm x 40cm x 40cm</item>
+        <item>Jumbo - max 50cm x 50cm x 50cm</item>
     </string-array>
 </resources>
-

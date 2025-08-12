@@ -9,6 +9,22 @@
     <string name="start_measurement">Mulai Pengukuran</string>
     <string name="view_history">Lihat Riwayat</string>
     <string name="version_info">Versi 1.0.0</string>
+    <string name="settings">Pengaturan</string>
+
+    <!-- Feature descriptions -->
+    <string name="feature_ar_measurement">Pengukuran AR yang akurat</string>
+    <string name="feature_price_estimation">Estimasi harga instan</string>
+    <string name="feature_history_tracking">Pelacakan riwayat pengukuran</string>
+
+    <!-- Package Input Dialog -->
+    <string name="default_package_name">Paket Default</string>
+    <string name="package_name_title">Masukkan Detail Paket</string>
+    <string name="package_name_hint">Nama paket (opsional)</string>
+    <string name="declared_size_hint">Pilih ukuran yang dinyatakan</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Batal</string>
+    <string name="dismiss">Tutup</string>
+    <string name="select_declared_size_prompt">Pilih ukuran yang dinyatakan</string>
 
     <!-- Measurement Instructions -->
     <string name="instruction_step_1">Arahkan kamera ke paket dan ketuk untuk memulai pengukuran</string>
@@ -32,14 +48,17 @@
     <string name="btn_new_measurement">Pengukuran Baru</string>
     <string name="btn_view_history">Lihat Riwayat</string>
 
-    <!-- Package Input Dialog -->
-    <string name="select_declared_size_prompt">Pilih ukuran yang dinyatakan</string>
-
     <!-- History -->
     <string name="no_measurements">Belum ada pengukuran tersimpan</string>
+    <string name="no_measurements_found">Tidak ada pengukuran</string>
     <string name="search_hint">Cari pengukuran...</string>
     <string name="export_csv">Ekspor CSV</string>
     <string name="delete_all">Hapus Semua</string>
+
+    <!-- Activity Titles -->
+    <string name="measurement_results">Hasil Pengukuran</string>
+    <string name="package_info">Informasi Paket</string>
+    <string name="price_estimation">Estimasi Harga</string>
 
     <!-- Measurements -->
     <string name="width">Lebar</string>
@@ -49,27 +68,44 @@
     <string name="timestamp">Waktu</string>
     <string name="package_name">Nama Paket</string>
     <string name="declared_size">Ukuran yang Dinyatakan</string>
-    <string name="size_category">Kategori Ukuran</string>
-    <string name="estimated_price">Estimasi Harga</string>
 
-    <!-- Menu items -->
-    <string name="action_share">Bagikan</string>
-    <string name="action_delete">Hapus</string>
+    <!-- Labels -->
+    <string name="width_label">Lebar:</string>
+    <string name="height_label">Tinggi:</string>
+    <string name="length_label">Panjang:</string>
+    <string name="volume_label">Volume:</string>
 
-    <!-- Messages -->
-    <string name="measurement_saved">Hasil pengukuran berhasil disimpan</string>
-    <string name="measurement_deleted">Pengukuran berhasil dihapus</string>
-    <string name="error_save_failed">Gagal menyimpan hasil pengukuran</string>
-    <string name="error_delete_failed">Gagal menghapus pengukuran</string>
-    <string name="arcore_not_supported">ARCore tidak didukung di perangkat ini</string>
+    <!-- Default Values -->
+    <string name="default_measurement">0.0 cm</string>
+    <string name="default_volume">0.0 cm³</string>
+    <string name="default_price">Rp0</string>
 
-    <!-- Additional missing strings for full app functionality -->
-    <string name="default_package_name">Paket Default</string>
-    <string name="package_name_title">Nama Paket</string>
-    <string name="ok">OK</string>
-    <string name="cancel">Batal</string>
-    <string name="dismiss">Tutup</string>
+    <!-- Error Messages -->
+    <string name="error_camera_permission">Izin kamera diperlukan untuk pengukuran AR</string>
+    <string name="error_ar_not_supported">Perangkat tidak mendukung ARCore</string>
+    <string name="error_measurement_failed">Pengukuran gagal, silakan coba lagi</string>
 
-    <!-- Menu and action strings -->
-    <string name="result_menu">Menu Hasil</string>
+    <!-- Toast Messages -->
+    <string name="measurement_saved">Pengukuran tersimpan</string>
+    <string name="measurement_deleted">Pengukuran dihapus</string>
+    <string name="photo_taken">Foto berhasil diambil</string>
+
+    <!-- Content Descriptions -->
+    <string name="logo_description">Logo Paxel AR Validator</string>
+    <string name="ar_measurement_icon">Ikon pengukuran AR</string>
+    <string name="price_estimation_icon">Ikon estimasi harga</string>
+    <string name="history_tracking_icon">Ikon pelacakan riwayat</string>
+
+    <!-- Result Activity Strings -->
+    <string name="package_name_loading">Nama Paket: Loading...</string>
+    <string name="declared_size_loading">Ukuran Deklarasi: Loading...</string>
+    <string name="timestamp_loading">Waktu: Loading...</string>
+    <string name="category_medium">Kategori: Sedang</string>
+    <string name="status_saved">Status: Tersimpan</string>
+
+    <!-- Additional strings for Material Design 3 components -->
+    <string name="expand_details">Tampilkan detail</string>
+    <string name="collapse_details">Sembunyikan detail</string>
+    <string name="measurement_saved_successfully">Pengukuran berhasil disimpan</string>
+    <string name="start_first_measurement">Mulai pengukuran pertama Anda</string>
 </resources>
