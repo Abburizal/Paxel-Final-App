@@ -6,8 +6,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
@@ -16,13 +14,13 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.paxel.arspacescan.R
-import com.paxel.arspacescan.databinding.ActivityResultBinding
 import com.paxel.arspacescan.data.local.AppDatabase
 import com.paxel.arspacescan.data.model.MeasurementResult
 import com.paxel.arspacescan.data.repository.MeasurementRepository
-import com.paxel.arspacescan.ui.main.MainActivity
-import com.paxel.arspacescan.ui.history.HistoryActivity
+import com.paxel.arspacescan.databinding.ActivityResultBinding
 import com.paxel.arspacescan.ui.common.safeHapticFeedback
+import com.paxel.arspacescan.ui.history.HistoryActivity
+import com.paxel.arspacescan.ui.main.MainActivity
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
@@ -49,57 +47,20 @@ class ResultActivity : AppCompatActivity() {
         binding = ActivityResultBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Setup utama
         setupActionBar()
         setupViewModel()
-        setupUI()
+        setupButtons() // Panggil setupButtons di sini
         setupBackPressedHandler()
         retrieveAndDisplayData()
     }
 
     private fun setupActionBar() {
-        binding.toolbar?.let { toolbar ->
-            try {
-                // Check if we already have an action bar
-                if (supportActionBar == null) {
-                    setSupportActionBar(toolbar)
-                    supportActionBar?.apply {
-                        setDisplayHomeAsUpEnabled(true)
-                        setDisplayShowHomeEnabled(true)
-                        title = "Hasil Pengukuran"
-                    }
-                } else {
-                    // Use existing action bar
-                    supportActionBar?.apply {
-                        setDisplayHomeAsUpEnabled(true)
-                        setDisplayShowHomeEnabled(true)
-                        title = "Hasil Pengukuran"
-                    }
-                }
-            } catch (e: IllegalStateException) {
-                Log.e("ResultActivity", "ActionBar already exists, using toolbar directly: ${e.message}")
-                // Fallback: use toolbar directly without setSupportActionBar
-                toolbar.title = "Hasil Pengukuran"
-                toolbar.setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material)
-                toolbar.setNavigationOnClickListener {
-                    onBackPressedDispatcher.onBackPressed()
-                }
-            } catch (e: Exception) {
-                Log.e("ResultActivity", "ActionBar setup failed: ${e.message}")
-                // Final fallback: basic toolbar setup
-                binding.toolbar?.let { tb ->
-                    tb.title = "Hasil Pengukuran"
-                    tb.setNavigationOnClickListener {
-                        onBackPressedDispatcher.onBackPressed()
-                    }
-                }
-            }
-        } ?: run {
-            // No toolbar in layout, use default action bar
-            supportActionBar?.apply {
-                setDisplayHomeAsUpEnabled(true)
-                setDisplayShowHomeEnabled(true)
-                title = "Hasil Pengukuran"
-            }
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+            setDisplayShowHomeEnabled(true)
+            // Title sudah diatur di XML, jadi tidak perlu diubah di sini
         }
     }
 
@@ -110,12 +71,8 @@ class ResultActivity : AppCompatActivity() {
         measurementViewModel = ViewModelProvider(this, viewModelFactory)[MeasurementViewModel::class.java]
     }
 
-    private fun setupUI() {
-        setupButtons()
-    }
-
     private fun setupButtons() {
-        // Reference buttons from the new layout
+        // Menggunakan ID yang benar dari XML: btnSaveResult
         binding.btnSaveResult.setOnClickListener {
             it.safeHapticFeedback()
             if (!isSaved) {
@@ -125,6 +82,7 @@ class ResultActivity : AppCompatActivity() {
             }
         }
 
+        // Menggunakan ID yang benar dari XML: btnNewMeasurement
         binding.btnNewMeasurement.setOnClickListener {
             it.safeHapticFeedback()
             startNewMeasurement()
@@ -134,9 +92,11 @@ class ResultActivity : AppCompatActivity() {
     private fun setupBackPressedHandler() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                // Jika data belum disimpan, tanyakan konfirmasi
                 if (!isSaved && measurementResult != null) {
                     showSaveConfirmationDialog()
                 } else {
+                    // Jika sudah disimpan atau tidak ada data, langsung kembali
                     finish()
                 }
             }
@@ -156,11 +116,14 @@ class ResultActivity : AppCompatActivity() {
         val measurementId = intent.getLongExtra(EXTRA_MEASUREMENT_ID, -1L)
 
         measurementResult?.let { result ->
+            // Menampilkan data dari pengukuran baru
             displayMeasurementResult(result, packageName, declaredSize)
         } ?: run {
             if (measurementId != -1L) {
+                // Jika tidak ada data pengukuran baru, coba muat dari database (mode riwayat)
                 loadMeasurementFromDatabase(measurementId)
             } else {
+                // Jika tidak ada data sama sekali
                 showError("Data pengukuran tidak ditemukan")
                 finish()
             }
@@ -170,96 +133,58 @@ class ResultActivity : AppCompatActivity() {
     private fun loadMeasurementFromDatabase(measurementId: Long) {
         lifecycleScope.launch {
             try {
-                measurementViewModel.getMeasurementById(measurementId).collect { result ->
-                    if (result != null) {
-                        measurementResult = result
+                measurementViewModel.getMeasurementById(measurementId).collect { resultFromDb ->
+                    if (resultFromDb != null) {
+                        measurementResult = resultFromDb
                         isSaved = true
                         savedMeasurementId = measurementId
-                        displayMeasurementResult(result, result.packageName, result.declaredSize)
+                        // Menampilkan data dari database
+                        displayMeasurementResult(resultFromDb, resultFromDb.packageName, resultFromDb.declaredSize)
                     } else {
-                        showError("Pengukuran tidak ditemukan")
+                        showError("Pengukuran tidak ditemukan di database")
                         finish()
                     }
                 }
             } catch (e: Exception) {
-                Log.e("ResultActivity", "Error loading measurement", e)
-                showError("Error memuat pengukuran: ${e.message}")
+                Log.e("ResultActivity", "Error memuat pengukuran dari DB", e)
+                showError("Error: ${e.message}")
                 finish()
             }
         }
     }
 
-    private fun displayMeasurementData() {
-        measurementResult?.let { result ->
-            val decimalFormat = DecimalFormat("#.##")
-
-            // Display measurement data using the new layout IDs
-            binding.tvWidth.text = "${decimalFormat.format(result.width * 100)} cm"
-            binding.tvHeight.text = "${decimalFormat.format(result.height * 100)} cm"
-            binding.tvDepth.text = "${decimalFormat.format(result.depth * 100)} cm"
-            binding.tvVolume.text = "${decimalFormat.format(result.volume * 1000000)} cm³"
-
-            // Display package information
-            binding.tvPackageName.text = "Nama Paket: ${intent.getStringExtra(EXTRA_PACKAGE_NAME) ?: "Default"}"
-            binding.tvDeclaredSize.text = "Ukuran Deklarasi: ${intent.getStringExtra(EXTRA_DECLARED_SIZE) ?: "Tidak ditentukan"}"
-
-            // Display timestamp
-            val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-            binding.tvTimestamp.text = "Waktu: ${dateFormat.format(Date())}"
-
-            // Display price estimation if available
-            val estimatedPrice = intent.getIntExtra("ESTIMATED_PRICE", 0)
-            val sizeCategory = intent.getStringExtra("PACKAGE_SIZE_CATEGORY") ?: ""
-
-            if (estimatedPrice > 0) {
-                binding.cvPriceEstimation.visibility = android.view.View.VISIBLE
-                binding.tvEstimatedPrice.text = "Rp${String.format("%,d", estimatedPrice)}"
-                binding.tvSizeCategory.text = "Kategori: $sizeCategory"
-            } else {
-                binding.cvPriceEstimation.visibility = android.view.View.GONE
-            }
-        }
-    }
-
+    // Satu-satunya fungsi untuk menampilkan semua data ke UI
     private fun displayMeasurementResult(result: MeasurementResult, packageName: String?, declaredSize: String?) {
-        val decimalFormat = DecimalFormat("#.##")
-        val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+        val decimalFormat = DecimalFormat("#,##0.00")
+        val dateFormat = SimpleDateFormat("dd MMMM yyyy, HH:mm 'WIB'", Locale("id", "ID"))
+        // Mengisi Informasi Paket
+        binding.tvPackageName.text = packageName ?: "Tidak ada nama"
+        binding.tvDeclaredSize.text = declaredSize ?: "Tidak ditentukan"
+        binding.tvTimestamp.text = dateFormat.format(Date(result.timestamp))
 
-        // Convert measurements from meters to centimeters for display
+        // Mengisi Hasil Pengukuran
         val widthCm = result.width * 100
         val heightCm = result.height * 100
         val depthCm = result.depth * 100
-        val volumeCm3 = (result.volume * 1_000_000).toDouble() // m³ to cm³
+        val volumeCm3 = result.volume * 1_000_000
 
-        // Use the correct View binding references
         binding.tvWidth.text = "${decimalFormat.format(widthCm)} cm"
         binding.tvHeight.text = "${decimalFormat.format(heightCm)} cm"
-        binding.tvDepth.text = "${decimalFormat.format(depthCm)} cm"
+        binding.tvDepth.text = "${decimalFormat.format(depthCm)} cm" // ID sudah benar (tvDepth)
         binding.tvVolume.text = "${decimalFormat.format(volumeCm3)} cm³"
 
-        // Display timestamp
-        binding.tvTimestamp.text = "Waktu: ${dateFormat.format(Date(result.timestamp))}"
-
-        // Display package information
-        binding.tvPackageName.text = "Nama Paket: ${packageName ?: "Tidak ada nama paket"}"
-        binding.tvDeclaredSize.text = "Ukuran Deklarasi: ${declaredSize ?: "Tidak ditentukan"}"
-
-        // Calculate and display size category and price
-        displaySizeCategoryAndPrice(volumeCm3)
-        updateSaveButtonState()
-    }
-
-    private fun displaySizeCategoryAndPrice(volumeCm3: Double) {
+        // Menghitung dan Mengisi Estimasi Harga
         val (category, price) = when {
             volumeCm3 <= 1000 -> "Kecil" to 10000
             volumeCm3 <= 5000 -> "Sedang" to 20000
             else -> "Besar" to 30000
         }
+        val priceFormat = DecimalFormat("Rp#,###")
 
-        // Display price estimation
-        binding.cvPriceEstimation.visibility = android.view.View.VISIBLE
-        binding.tvEstimatedPrice.text = "Rp${String.format("%,d", price)}"
-        binding.tvSizeCategory.text = "Kategori: $category"
+        binding.tvEstimatedPrice.text = priceFormat.format(price)
+        binding.tvSizeCategory.text = category
+
+        updateSaveButtonState()
     }
 
     private fun updateSaveButtonState() {
@@ -267,17 +192,17 @@ class ResultActivity : AppCompatActivity() {
             binding.btnSaveResult.apply {
                 text = "Tersimpan"
                 isEnabled = false
-                alpha = 0.6f
+                icon = ContextCompat.getDrawable(this@ResultActivity, R.drawable.ic_check)
+                alpha = 0.7f
             }
-            binding.cvSaveStatus.visibility = android.view.View.VISIBLE
-            binding.tvSaveStatus.text = "Status: Tersimpan"
+            // Menghapus referensi ke cvSaveStatus yang sudah tidak ada
         } else {
             binding.btnSaveResult.apply {
                 text = getString(R.string.btn_save)
                 isEnabled = true
+                icon = ContextCompat.getDrawable(this@ResultActivity, R.drawable.ic_save)
                 alpha = 1.0f
             }
-            binding.cvSaveStatus.visibility = android.view.View.GONE
         }
     }
 
@@ -286,17 +211,11 @@ class ResultActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                val packageName = intent.getStringExtra(EXTRA_PACKAGE_NAME)
-                val declaredSize = intent.getStringExtra(EXTRA_DECLARED_SIZE)
+                // Mengambil data terbaru dari intent jika ada
+                val packageName = intent.getStringExtra(EXTRA_PACKAGE_NAME) ?: result.packageName
+                val declaredSize = intent.getStringExtra(EXTRA_DECLARED_SIZE) ?: result.declaredSize
 
-                // Buat MeasurementResult baru dengan data tambahan
-                val resultToSave = MeasurementResult(
-                    id = result.id,
-                    width = result.width,
-                    height = result.height,
-                    depth = result.depth,
-                    volume = result.volume,
-                    timestamp = result.timestamp,
+                val resultToSave = result.copy(
                     packageName = packageName,
                     declaredSize = declaredSize
                 )
@@ -327,14 +246,14 @@ class ResultActivity : AppCompatActivity() {
     }
 
     private fun showSaveConfirmationDialog() {
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.AlertDialogTheme)
             .setTitle("Simpan Hasil?")
-            .setMessage("Apakah Anda ingin menyimpan hasil pengukuran sebelum keluar?")
-            .setPositiveButton("Simpan") { _, _ ->
+            .setMessage("Anda memiliki hasil pengukuran yang belum disimpan. Ingin menyimpannya sebelum keluar?")
+            .setPositiveButton("Simpan & Keluar") { _, _ ->
                 saveMeasurement()
                 finish()
             }
-            .setNegativeButton("Keluar Tanpa Menyimpan") { _, _ ->
+            .setNegativeButton("Keluar") { _, _ ->
                 finish()
             }
             .setNeutralButton("Batal", null)
@@ -348,6 +267,9 @@ class ResultActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.result_menu, menu)
+        // Hanya tampilkan tombol delete jika hasil sudah tersimpan
+        val deleteItem = menu?.findItem(R.id.action_delete)
+        deleteItem?.isVisible = isSaved
         return true
     }
 
@@ -374,28 +296,39 @@ class ResultActivity : AppCompatActivity() {
     }
 
     private fun shareMeasurementResult() {
-        val measurementData = measurementResult ?: return
-        val decimalFormat = DecimalFormat("#.##")
+        val result = measurementResult ?: return
+        val decimalFormat = DecimalFormat("#,##0.00")
+        val priceFormat = DecimalFormat("Rp#,###")
 
-        val widthCm = measurementData.width * 100
-        val heightCm = measurementData.height * 100
-        val depthCm = measurementData.depth * 100
-        val volumeCm3 = measurementData.volume * 1_000_000
+        val widthCm = result.width * 100
+        val heightCm = result.height * 100
+        val depthCm = result.depth * 100
+        val volumeCm3 = result.volume * 1_000_000
+
+        val (_, price) = when {
+            volumeCm3 <= 1000 -> "Kecil" to 10000
+            volumeCm3 <= 5000 -> "Sedang" to 20000
+            else -> "Besar" to 30000
+        }
 
         val shareText = """
-            Hasil Pengukuran AR
+            *Hasil Pengukuran Paxel AR*
             
-            Dimensi:
-            Lebar: ${decimalFormat.format(widthCm)} cm
-            Tinggi: ${decimalFormat.format(heightCm)} cm
-            Panjang: ${decimalFormat.format(depthCm)} cm
-            Volume: ${decimalFormat.format(volumeCm3)} cm³
+            *Nama Paket:* ${result.packageName ?: "-"}
+            *Ukuran Deklarasi:* ${result.declaredSize ?: "-"}
             
-            Diukur dengan Paxel AR Validator
+            *Hasil Ukur:*
+            - Lebar: ${decimalFormat.format(widthCm)} cm
+            - Tinggi: ${decimalFormat.format(heightCm)} cm
+            - Panjang: ${decimalFormat.format(depthCm)} cm
+            - Volume: ${decimalFormat.format(volumeCm3)} cm³
+            
+            *Estimasi Harga:* ${priceFormat.format(price)}
+            
+            _Diukur pada ${SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale.getDefault()).format(Date(result.timestamp))}_
         """.trimIndent()
 
-        val shareIntent = Intent().apply {
-            action = Intent.ACTION_SEND
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
             putExtra(Intent.EXTRA_TEXT, shareText)
             type = "text/plain"
         }
@@ -403,20 +336,23 @@ class ResultActivity : AppCompatActivity() {
     }
 
     private fun deleteMeasurement() {
-        val id = savedMeasurementId ?: return
+        val id = savedMeasurementId ?: run {
+            Toast.makeText(this, "Tidak ada data untuk dihapus", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.AlertDialogTheme)
             .setTitle("Hapus Pengukuran")
-            .setMessage("Apakah Anda yakin ingin menghapus hasil pengukuran ini?")
+            .setMessage("Apakah Anda yakin ingin menghapus hasil pengukuran ini secara permanen?")
             .setPositiveButton("Hapus") { _, _ ->
                 lifecycleScope.launch {
                     try {
                         measurementViewModel.deleteMeasurementById(id)
                         Toast.makeText(this@ResultActivity, "Pengukuran berhasil dihapus", Toast.LENGTH_SHORT).show()
-                        finish()
+                        finish() // Kembali ke layar sebelumnya setelah hapus
                     } catch (e: Exception) {
                         Log.e("ResultActivity", "Error deleting measurement", e)
-                        Toast.makeText(this@ResultActivity, "Gagal menghapus: ${e.message}", Toast.LENGTH_SHORT).show()
+                        showError("Gagal menghapus: ${e.message}")
                     }
                 }
             }

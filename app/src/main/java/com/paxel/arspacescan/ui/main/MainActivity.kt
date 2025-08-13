@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
 import com.google.ar.core.ArCoreApk
 import com.paxel.arspacescan.R
+import com.paxel.arspacescan.ui.about.AboutActivity
 import com.paxel.arspacescan.ui.common.safeHapticFeedback
 import com.paxel.arspacescan.ui.history.HistoryActivity
 import com.paxel.arspacescan.ui.measurement.ARMeasurementActivity
@@ -38,6 +39,7 @@ class MainActivity : AppCompatActivity(), PackageInputDialog.OnPackageInputListe
     private fun setupMainMenu() {
         val startMeasurementButton = findViewById<MaterialButton>(R.id.btnStartMeasurement)
         val historyButton = findViewById<MaterialButton>(R.id.btnHistory)
+        val aboutButton = findViewById<MaterialButton>(R.id.btnAbout) // [TAMBAHAN] Inisialisasi tombol About
 
         startMeasurementButton.setOnClickListener {
             it.safeHapticFeedback()
@@ -47,6 +49,13 @@ class MainActivity : AppCompatActivity(), PackageInputDialog.OnPackageInputListe
         historyButton.setOnClickListener {
             it.safeHapticFeedback()
             startActivity(Intent(this, HistoryActivity::class.java))
+        }
+
+        // [TAMBAHAN] Menambahkan listener untuk tombol About
+        aboutButton.setOnClickListener {
+            it.safeHapticFeedback()
+            val intent = Intent(this, AboutActivity::class.java)
+            startActivity(intent)
         }
     }
 

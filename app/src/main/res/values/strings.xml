@@ -12,7 +12,7 @@
     <string name="settings">Pengaturan</string>
 
     <!-- Feature descriptions -->
-    <string name="feature_ar_measurement">Pengukuran AR yang akurat</string>
+    <string name="feature_ar_measurement">Pengukuran AR yang simple</string>
     <string name="feature_price_estimation">Estimasi harga instan</string>
     <string name="feature_history_tracking">Pelacakan riwayat pengukuran</string>
 
@@ -45,7 +45,7 @@
     <string name="btn_take_photo">Ambil Foto</string>
     <string name="btn_continue_to_result">Lanjutkan ke Hasil</string>
     <string name="btn_save">Simpan Hasil</string>
-    <string name="btn_new_measurement">Pengukuran Baru</string>
+    <string name="btn_new_measurement">Ukur Baru</string>
     <string name="btn_view_history">Lihat Riwayat</string>
 
     <!-- History -->
@@ -108,4 +108,9 @@
     <string name="collapse_details">Sembunyikan detail</string>
     <string name="measurement_saved_successfully">Pengukuran berhasil disimpan</string>
     <string name="start_first_measurement">Mulai pengukuran pertama Anda</string>
+
+    <!--About aplications -->
+    <string name="app_description">Selamat datang di Paxel AR ! Ubah cara Anda mengukur paket. Cukup arahkan kamera Anda untuk mendapatkan ukuran panjang, lebar, dan tinggi secara instan. Aplikasi ini memudahkan Anda untuk mengetahui estimasi biaya pengiriman dan menyimpan setiap pengukuran untuk referensi di masa mendatang.</string>
 </resources>
+
+

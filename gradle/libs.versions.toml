@@ -25,6 +25,7 @@ espressoCore = "3.6.1"
 coroutinesTest = "1.9.0"
 androidxTestCore = "1.6.1"
 androidxJunitKtx = "1.2.1"
+activity = "1.10.1"
 
 [libraries]
 # AndroidX Core, Appcompat, Lifecycle
@@ -66,6 +67,7 @@ androidx-room-testing = { group = "androidx.room", name = "room-testing", versio
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 androidx-test-core-ktx = { group = "androidx.test", name = "core-ktx", version.ref = "androidxTestCore" }
 androidx-test-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxJunitKtx" }
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

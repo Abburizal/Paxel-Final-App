@@ -3,6 +3,7 @@
     <!-- Basic Colors -->
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
+    <color name="light_gray_background">#F5F5F5</color>
 
     <!-- Paxel Brand Colors -->
     <color name="primary">#6638e2</color>
