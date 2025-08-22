@@ -57,7 +57,8 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 @Suppress("UNCHECKED_CAST")
-                return ARMeasurementViewModel(MeasurementCalculator()) as T
+                // Memanggil constructor kosong, karena MeasurementCalculator sudah tidak diperlukan
+                return ARMeasurementViewModel() as T
             }
         }
     }
@@ -71,6 +72,8 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
     private var lineRenderable: ModelRenderable? = null
     private val visualNodes = mutableListOf<Node>()
     private var isArCoreSupported = true
+    private var smoothedHeight: Float = 0.0f
+
 
     // Price Estimation Variables
     private var estimatedPrice = 0
@@ -180,7 +183,16 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
                     showUserFeedback("Tunggu hingga permukaan terdeteksi dengan baik")
                     return@setOnTapArPlaneListener
                 }
-
+// [PERBAIKAN] Filter hitResult yang sudah ada divalidasi lebih lanjut
+                if (!isHitResultValid(hitResult, plane)) {
+                    // Pesan spesifik jika terlalu jauh
+                    if (hitResult.distance > 5.0f) {
+                        showUserFeedback("Objek terlalu jauh, coba lebih dekat")
+                    } else {
+                        showUserFeedback("Ketuk area yang lebih stabil untuk hasil terbaik")
+                    }
+                    return@setOnTapArPlaneListener
+                }
                 // Validate hit result quality
                 if (!isHitResultValid(hitResult, plane)) {
                     showUserFeedback("Ketuk area yang lebih stabil untuk hasil terbaik")
@@ -352,7 +364,9 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
 
             planeHit?.let { hit ->
                 val pA = currentState.corners[0].worldPosition
-                val height = max(0.01f, hit.hitPose.ty() - pA.y)
+                val newHeight = max(0.01f, hit.hitPose.ty() - pA.y)
+                smoothedHeight += (newHeight - smoothedHeight) * 0.1f // Faktor smoothing 0.1
+                val height = smoothedHeight
                 val baseCornersPos = currentState.corners.map { it.worldPosition }
                 val topCornersPos = baseCornersPos.map {
                     Vector3(it.x, pA.y + height, it.z)

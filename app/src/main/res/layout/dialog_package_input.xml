@@ -25,31 +25,4 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Declared Size Dropdown -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilDeclaredSize"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/select_declared_size_prompt"
-        app:boxStrokeColor="@color/paxel_primary"
-        app:hintTextColor="@color/paxel_primary"
-        app:endIconMode="dropdown_menu">
-
-        <AutoCompleteTextView
-            android:id="@+id/actvDeclaredSize"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:paddingTop="16dp"
-            android:paddingBottom="16dp"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:inputType="none"
-            android:focusable="false"
-            android:clickable="true"
-            android:textSize="16sp"
-            android:textColor="@color/text_primary" />
-
-    </com.google.android.material.textfield.TextInputLayout>
-
 </LinearLayout>

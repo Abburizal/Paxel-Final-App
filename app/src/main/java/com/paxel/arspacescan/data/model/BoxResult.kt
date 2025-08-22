@@ -3,9 +3,9 @@ package com.paxel.arspacescan.data.model
 import com.google.ar.sceneform.AnchorNode
 
 data class BoxResult(
-    val length: Float,
-    val width: Float,
-    val height: Float,
-    val volume: Float,
-    val corners: List<AnchorNode>
+    val length: Float, // dalam meter
+    val width: Float,  // dalam meter
+    val height: Float, // dalam meter
+    val volume: Float, // dalam meter kubik
+    val packageName: String
 )

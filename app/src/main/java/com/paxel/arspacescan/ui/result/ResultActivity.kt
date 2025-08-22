@@ -157,20 +157,21 @@ class ResultActivity : AppCompatActivity() {
     private fun displayMeasurementResult(result: MeasurementResult, packageName: String?, declaredSize: String?) {
         val decimalFormat = DecimalFormat("#,##0.00")
         val dateFormat = SimpleDateFormat("dd MMMM yyyy, HH:mm 'WIB'", Locale("id", "ID"))
+
         // Mengisi Informasi Paket
         binding.tvPackageName.text = packageName ?: "Tidak ada nama"
         binding.tvDeclaredSize.text = declaredSize ?: "Tidak ditentukan"
         binding.tvTimestamp.text = dateFormat.format(Date(result.timestamp))
 
-        // Mengisi Hasil Pengukuran
+        // Mengisi Hasil Pengukuran (Konversi ke cm di sini)
         val widthCm = result.width * 100
         val heightCm = result.height * 100
         val depthCm = result.depth * 100
-        val volumeCm3 = result.volume * 1_000_000
+        val volumeCm3 = result.volume * 1_000_000 // 1 m³ = 1,000,000 cm³
 
         binding.tvWidth.text = "${decimalFormat.format(widthCm)} cm"
         binding.tvHeight.text = "${decimalFormat.format(heightCm)} cm"
-        binding.tvDepth.text = "${decimalFormat.format(depthCm)} cm" // ID sudah benar (tvDepth)
+        binding.tvDepth.text = "${decimalFormat.format(depthCm)} cm"
         binding.tvVolume.text = "${decimalFormat.format(volumeCm3)} cm³"
 
         // Menghitung dan Mengisi Estimasi Harga

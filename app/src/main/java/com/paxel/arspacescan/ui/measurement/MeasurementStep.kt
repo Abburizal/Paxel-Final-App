@@ -10,6 +10,11 @@ enum class MeasurementStep {
     START,
 
     /**
+     * [PERBAIKAN] First base point 'A' has been added, waiting for point 'B' (diagonal)
+     */
+    BASE_POINT_B_ADDED,
+
+    /**
      * Base rectangle has been defined with 4 corners
      */
     BASE_DEFINED,

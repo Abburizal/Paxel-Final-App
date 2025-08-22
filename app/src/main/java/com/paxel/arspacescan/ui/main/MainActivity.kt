@@ -18,6 +18,7 @@ import com.paxel.arspacescan.ui.common.safeHapticFeedback
 import com.paxel.arspacescan.ui.history.HistoryActivity
 import com.paxel.arspacescan.ui.measurement.ARMeasurementActivity
 
+// Perbarui implementasi listener
 class MainActivity : AppCompatActivity(), PackageInputDialog.OnPackageInputListener {
 
     private val CAMERA_PERMISSION_CODE = 100
@@ -39,7 +40,7 @@ class MainActivity : AppCompatActivity(), PackageInputDialog.OnPackageInputListe
     private fun setupMainMenu() {
         val startMeasurementButton = findViewById<MaterialButton>(R.id.btnStartMeasurement)
         val historyButton = findViewById<MaterialButton>(R.id.btnHistory)
-        val aboutButton = findViewById<MaterialButton>(R.id.btnAbout) // [TAMBAHAN] Inisialisasi tombol About
+        val aboutButton = findViewById<MaterialButton>(R.id.btnAbout)
 
         startMeasurementButton.setOnClickListener {
             it.safeHapticFeedback()
@@ -51,7 +52,6 @@ class MainActivity : AppCompatActivity(), PackageInputDialog.OnPackageInputListe
             startActivity(Intent(this, HistoryActivity::class.java))
         }
 
-        // [TAMBAHAN] Menambahkan listener untuk tombol About
         aboutButton.setOnClickListener {
             it.safeHapticFeedback()
             val intent = Intent(this, AboutActivity::class.java)
@@ -60,7 +60,6 @@ class MainActivity : AppCompatActivity(), PackageInputDialog.OnPackageInputListe
     }
 
     private fun checkPermissionsAndStartMeasurement() {
-        // Cek ketersediaan ARCore
         val availability = ArCoreApk.getInstance().checkAvailability(this)
         if (availability.isTransient) {
             Handler(Looper.getMainLooper()).postDelayed({
@@ -91,8 +90,8 @@ class MainActivity : AppCompatActivity(), PackageInputDialog.OnPackageInputListe
     }
 
     private fun showPackageInputDialog() {
-        val dialog = PackageInputDialog()
-        dialog.show(supportFragmentManager, "PackageInputDialog")
+        val dialog = PackageInputDialog.newInstance() // Gunakan newInstance() untuk best practice
+        dialog.show(supportFragmentManager, PackageInputDialog.TAG)
     }
 
     override fun onRequestPermissionsResult(
@@ -114,13 +113,13 @@ class MainActivity : AppCompatActivity(), PackageInputDialog.OnPackageInputListe
         }
     }
 
-    // Implementation of OnPackageInputListener interface
-    override fun onPackageInput(packageName: String, declaredSize: String) {
-        // Handle package input data received from PackageInputDialog
-        // Start ARMeasurementActivity with the package information
+    // [PERBAIKAN] Implementasi OnPackageInputListener yang sudah diperbarui
+    override fun onPackageInput(packageName: String) {
+        // Handle data input paket yang diterima dari PackageInputDialog
+        // Mulai ARMeasurementActivity dengan informasi paket
         val intent = Intent(this, ARMeasurementActivity::class.java)
         intent.putExtra("PACKAGE_NAME", packageName)
-        intent.putExtra("DECLARED_SIZE", declaredSize)
+        // Hapus pengiriman "DECLARED_SIZE" karena sudah tidak ada
         startActivity(intent)
     }
 }

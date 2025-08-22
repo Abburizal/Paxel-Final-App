@@ -1,15 +1,167 @@
 package com.paxel.arspacescan.ui.measurement
 
 import android.content.Context
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.ar.sceneform.AnchorNode
 import com.paxel.arspacescan.R
 import com.paxel.arspacescan.data.model.MeasurementResult
 import com.paxel.arspacescan.util.MeasurementCalculator
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.math.max
+import kotlin.math.min
+
+class ARMeasurementViewModel : ViewModel() {
+
+    private val _uiState = MutableStateFlow(ARMeasurementUiState())
+    val uiState = _uiState.asStateFlow()
+
+    private val _navigationEvent = MutableSharedFlow<MeasurementResult>()
+    val navigationEvent = _navigationEvent.asSharedFlow()
+
+    fun handleArTap(anchorNode: AnchorNode, context: Context) {
+        val currentState = _uiState.value
+        when (currentState.step) {
+            MeasurementStep.START -> {
+                addPoint(anchorNode)
+                _uiState.update {
+                    it.copy(
+                        step = MeasurementStep.BASE_POINT_B_ADDED,
+                        instructionTextId = R.string.instruction_step_2
+                    )
+                }
+            }
+            MeasurementStep.BASE_POINT_B_ADDED -> {
+                addPoint(anchorNode)
+                defineBaseCorners(context)
+            }
+            MeasurementStep.BASE_DEFINED -> {
+                defineHeightAndComplete(anchorNode)
+            }
+            else -> {
+                // Do nothing in other states like COMPLETED
+            }
+        }
+    }
+
+    private fun addPoint(point: AnchorNode) {
+        _uiState.update {
+            it.copy(
+                points = it.points + point,
+                isUndoEnabled = true
+            )
+        }
+    }
+
+    // [FINAL] Logika yang disempurnakan untuk akurasi yang lebih tinggi
+    private fun defineBaseCorners(context: Context) {
+        val points = _uiState.value.points
+        if (points.size < 2) return
+
+        val p1 = points[0].worldPosition
+        val p2 = points[1].worldPosition
+
+        // 1. Ratakan ketinggian (sumbu Y) untuk memastikan alasnya datar
+        val avgY = (p1.y + p2.y) / 2f
+
+        // 2. Tentukan titik minimum dan maksimum untuk membentuk Bounding Box 2D (pada bidang XZ)
+        val minX = min(p1.x, p2.x)
+        val maxX = max(p1.x, p2.x)
+        val minZ = min(p1.z, p2.z)
+        val maxZ = max(p1.z, p2.z)
+
+        // 3. Buat 4 sudut kotak yang sempurna secara matematis (ortogonal)
+        val pA = com.google.ar.sceneform.math.Vector3(minX, avgY, minZ)
+        val pB = com.google.ar.sceneform.math.Vector3(minX, avgY, maxZ)
+        val pC = com.google.ar.sceneform.math.Vector3(maxX, avgY, maxZ)
+        val pD = com.google.ar.sceneform.math.Vector3(maxX, avgY, minZ)
+
+        // Urutan sudut disesuaikan agar kalkulasi di MeasurementCalculator tetap benar
+        val corners = listOf(pA, pB, pC, pD).map { position ->
+            AnchorNode().apply { worldPosition = position }
+        }
+
+        _uiState.update {
+            it.copy(
+                corners = corners,
+                step = MeasurementStep.BASE_DEFINED,
+                instructionTextId = R.string.instruction_step_3
+            )
+        }
+    }
+
+
+    private fun defineHeightAndComplete(heightPoint: AnchorNode) {
+        val baseCorners = _uiState.value.corners
+        if (baseCorners.isEmpty()) return
+
+        // Logika ini sudah akurat karena hanya mengambil nilai Y dari titik tinggi
+        val height = kotlin.math.abs(heightPoint.worldPosition.y - baseCorners[0].worldPosition.y)
+
+        val topCorners = baseCorners.map { baseNode ->
+            val pos = baseNode.worldPosition
+            AnchorNode().apply {
+                worldPosition = com.google.ar.sceneform.math.Vector3(pos.x, pos.y + height, pos.z)
+            }
+        }
+
+        val allCorners = baseCorners + topCorners
+        val result = MeasurementCalculator.calculateFinalMeasurement(allCorners)
+
+        if (result != null) {
+            _uiState.update {
+                it.copy(
+                    corners = allCorners,
+                    step = MeasurementStep.COMPLETED,
+                    instructionTextId = R.string.instruction_completed,
+                    isUndoEnabled = false,
+                    finalResult = result
+                )
+            }
+        }
+    }
+
+
+    fun undoLastPoint() {
+        val currentState = _uiState.value
+        if (currentState.points.isNotEmpty()) {
+            val newPoints = currentState.points.dropLast(1)
+            val newStep = if (newPoints.isEmpty()) MeasurementStep.START else MeasurementStep.BASE_POINT_B_ADDED
+            val newInstruction = if (newPoints.isEmpty()) R.string.instruction_step_1 else R.string.instruction_step_2
+
+            _uiState.update {
+                it.copy(
+                    points = newPoints,
+                    corners = emptyList(),
+                    step = newStep,
+                    instructionTextId = newInstruction,
+                    isUndoEnabled = newPoints.isNotEmpty()
+                )
+            }
+        }
+    }
+
+    fun reset() {
+        _uiState.value = ARMeasurementUiState()
+    }
+
+    fun completeMeasurement() {
+        viewModelScope.launch {
+            _uiState.value.finalResult?.let {
+                _navigationEvent.emit(it)
+            }
+        }
+    }
+
+    fun updateHeight(height: Float) {
+        // Fungsi ini bisa digunakan nanti jika diperlukan
+    }
+}
 
 data class ARMeasurementUiState(
     val step: MeasurementStep = MeasurementStep.START,
@@ -19,101 +171,3 @@ data class ARMeasurementUiState(
     val isUndoEnabled: Boolean = false,
     val finalResult: MeasurementResult? = null
 )
-
-class ARMeasurementViewModel(private val calculator: MeasurementCalculator) : ViewModel() {
-
-    private val _uiState = MutableStateFlow(ARMeasurementUiState())
-    val uiState: StateFlow<ARMeasurementUiState> = _uiState.asStateFlow()
-
-    private val _navigationEvent = MutableSharedFlow<MeasurementResult>()
-    val navigationEvent: SharedFlow<MeasurementResult> = _navigationEvent.asSharedFlow()
-
-    fun handleArTap(tappedNode: AnchorNode, context: Context) {
-        viewModelScope.launch {
-            val currentState = _uiState.value
-
-            when {
-                currentState.points.isEmpty() -> {
-                    _uiState.value = currentState.copy(
-                        points = listOf(tappedNode),
-                        instructionTextId = R.string.instruction_step_2,
-                        isUndoEnabled = true
-                    )
-                }
-                currentState.points.size == 1 -> {
-                    val p1 = currentState.points[0]
-                    val p2 = tappedNode
-                    val allBasePoints = calculator.calculateBaseCorners(p1, p2)
-                    _uiState.value = currentState.copy(
-                        step = MeasurementStep.BASE_DEFINED,
-                        instructionTextId = R.string.instruction_step_3,
-                        points = currentState.points + p2,
-                        corners = allBasePoints
-                    )
-                }
-                currentState.step == MeasurementStep.BASE_DEFINED -> {
-                    // Complete the box measurement
-                    val heightPoint = tappedNode
-                    val baseCorners = currentState.corners
-
-                    if (baseCorners.size >= 4) {
-                        val allCorners = calculator.calculateBoxCorners(baseCorners, heightPoint)
-                        val result = calculator.calculateMeasurement(allCorners)
-
-                        _uiState.value = currentState.copy(
-                            step = MeasurementStep.COMPLETED,
-                            instructionTextId = R.string.instruction_completed,
-                            points = currentState.points + heightPoint,
-                            corners = allCorners,
-                            finalResult = result
-                        )
-
-                        Toast.makeText(context, "Pengukuran selesai!", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-        }
-    }
-
-    fun undoLastPoint() {
-        viewModelScope.launch {
-            val currentState = _uiState.value
-
-            when {
-                currentState.points.size == 1 -> {
-                    _uiState.value = ARMeasurementUiState()
-                }
-                currentState.points.size == 2 && currentState.step == MeasurementStep.BASE_DEFINED -> {
-                    _uiState.value = currentState.copy(
-                        step = MeasurementStep.START,
-                        instructionTextId = R.string.instruction_step_2,
-                        points = currentState.points.dropLast(1),
-                        corners = emptyList()
-                    )
-                }
-                currentState.step == MeasurementStep.COMPLETED -> {
-                    _uiState.value = currentState.copy(
-                        step = MeasurementStep.BASE_DEFINED,
-                        instructionTextId = R.string.instruction_step_3,
-                        points = currentState.points.dropLast(1),
-                        corners = currentState.corners.take(4),
-                        finalResult = null
-                    )
-                }
-            }
-        }
-    }
-
-    fun reset() {
-        _uiState.value = ARMeasurementUiState()
-    }
-
-    fun navigateToResults() {
-        viewModelScope.launch {
-            val result = _uiState.value.finalResult
-            if (result != null) {
-                _navigationEvent.emit(result)
-            }
-        }
-    }
-}
