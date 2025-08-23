@@ -12,6 +12,10 @@ interface MeasurementDao {
     @Update
     suspend fun update(measurement: PackageMeasurement)
 
+    // Tambahkan anotasi @Delete
+    @Delete
+    suspend fun delete(measurement: PackageMeasurement) // Tambahkan fungsi ini
+
     @Query("SELECT * FROM package_measurements ORDER BY timestamp DESC")
     fun getAllMeasurements(): Flow<List<PackageMeasurement>>
 

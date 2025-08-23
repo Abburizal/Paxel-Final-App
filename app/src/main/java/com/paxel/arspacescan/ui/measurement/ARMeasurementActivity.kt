@@ -44,7 +44,9 @@ import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.ShapeFactory
 import com.google.ar.sceneform.ux.ArFragment
 import com.paxel.arspacescan.R
+import com.paxel.arspacescan.data.local.AppDatabase
 import com.paxel.arspacescan.data.model.MeasurementResult
+import com.paxel.arspacescan.data.repository.MeasurementRepository
 import com.paxel.arspacescan.ui.common.safeHapticFeedback
 import com.paxel.arspacescan.ui.result.ResultActivity
 import com.paxel.arspacescan.util.MeasurementCalculator
@@ -56,9 +58,13 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
     private val viewModel: ARMeasurementViewModel by viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                @Suppress("UNCHECKED_CAST")
-                // Memanggil constructor kosong, karena MeasurementCalculator sudah tidak diperlukan
-                return ARMeasurementViewModel() as T
+                if (modelClass.isAssignableFrom(ARMeasurementViewModel::class.java)) {
+                    val dao = AppDatabase.getDatabase(applicationContext).measurementDao()
+                    val repository = MeasurementRepository(dao)
+                    @Suppress("UNCHECKED_CAST")
+                    return ARMeasurementViewModel(repository) as T
+                }
+                throw IllegalArgumentException("Unknown ViewModel class")
             }
         }
     }

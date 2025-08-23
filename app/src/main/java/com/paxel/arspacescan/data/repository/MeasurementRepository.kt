@@ -7,8 +7,13 @@ import kotlinx.coroutines.flow.Flow
 class MeasurementRepository(private val measurementDao: MeasurementDao) {
 
     suspend fun insert(measurement: PackageMeasurement) = measurementDao.insert(measurement)
+
     suspend fun update(measurement: PackageMeasurement) = measurementDao.update(measurement)
+
+    suspend fun delete(measurement: PackageMeasurement) = measurementDao.delete(measurement)
+
     suspend fun deleteMeasurementById(id: Long) = measurementDao.deleteMeasurementById(id)
+
     suspend fun deleteAllMeasurements() = measurementDao.deleteAll()
 
     fun getAllMeasurements(): Flow<List<PackageMeasurement>> = measurementDao.getAllMeasurements()

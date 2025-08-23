@@ -21,6 +21,7 @@ import java.util.Locale
 
 class MeasurementAdapter(
     private val onItemClick: (MeasurementResult) -> Unit,
+    private val onItemLongClick: (MeasurementResult) -> Unit, // Tambahkan callback ini
     private val onDeleteClick: (MeasurementResult) -> Unit
 ) : ListAdapter<MeasurementResult, MeasurementAdapter.ViewHolder>(MeasurementDiffCallback()) {
 
@@ -31,7 +32,19 @@ class MeasurementAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        val measurement = getItem(position)
+        holder.bind(measurement)
+
+        // Set click listeners
+        holder.itemView.setOnClickListener {
+            onItemClick(measurement)
+        }
+
+        // Tambahkan long click listener
+        holder.itemView.setOnLongClickListener {
+            onItemLongClick(measurement)
+            true // Return true untuk menandakan event sudah di-handle
+        }
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -76,16 +89,7 @@ class MeasurementAdapter(
             // Setup expand/collapse functionality
             setupExpandCollapse()
 
-            // Set click listeners
-            itemView.setOnClickListener {
-                onItemClick(measurement)
-                toggleExpanded()
-            }
-
-            btnExpand.setOnClickListener {
-                toggleExpanded()
-            }
-
+            // Set delete button click listener
             btnDelete.setOnClickListener {
                 onDeleteClick(measurement)
             }
@@ -94,6 +98,11 @@ class MeasurementAdapter(
         private fun setupExpandCollapse() {
             updateExpandIcon()
             layoutExpandableDetails.visibility = if (isExpanded) View.VISIBLE else View.GONE
+
+            // Set expand/collapse button click listener
+            btnExpand.setOnClickListener {
+                toggleExpanded()
+            }
         }
 
         private fun toggleExpanded() {

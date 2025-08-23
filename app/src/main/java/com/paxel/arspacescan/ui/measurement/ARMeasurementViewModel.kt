@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.ar.sceneform.AnchorNode
 import com.paxel.arspacescan.R
 import com.paxel.arspacescan.data.model.MeasurementResult
+import com.paxel.arspacescan.data.model.PackageMeasurement
+import com.paxel.arspacescan.data.repository.MeasurementRepository
 import com.paxel.arspacescan.util.MeasurementCalculator
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +18,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.min
 
-class ARMeasurementViewModel : ViewModel() {
+class ARMeasurementViewModel(private val repository: MeasurementRepository) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ARMeasurementUiState())
     val uiState = _uiState.asStateFlow()
@@ -160,6 +162,13 @@ class ARMeasurementViewModel : ViewModel() {
 
     fun updateHeight(height: Float) {
         // Fungsi ini bisa digunakan nanti jika diperlukan
+    }
+
+    // Tambahkan fungsi delete
+    fun delete(measurement: PackageMeasurement) {
+        viewModelScope.launch {
+            repository.delete(measurement)
+        }
     }
 }
 

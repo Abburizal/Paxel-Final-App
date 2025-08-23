@@ -14,6 +14,7 @@ import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -81,6 +82,9 @@ class HistoryActivity : AppCompatActivity() {
                 }
                 startActivity(intent)
             },
+            onItemLongClick = { measurement -> // Implementasikan callback long click
+                showDeleteConfirmationDialog(measurement)
+            },
             onDeleteClick = { measurement ->
                 confirmDelete(measurement)
             }
@@ -140,6 +144,19 @@ class HistoryActivity : AppCompatActivity() {
             recyclerView.visibility = View.VISIBLE
             emptyStateLayout.visibility = View.GONE
         }
+    }
+
+    // Tambahkan fungsi baru ini untuk long click delete
+    private fun showDeleteConfirmationDialog(measurement: MeasurementResult) {
+        AlertDialog.Builder(this)
+            .setTitle("Hapus Riwayat")
+            .setMessage("Apakah Anda yakin ingin menghapus item '${measurement.packageName}'?")
+            .setPositiveButton("Hapus") { _, _ ->
+                measurementViewModel.deleteMeasurementById(measurement.id)
+                Toast.makeText(this, "Item dihapus", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Batal", null)
+            .show()
     }
 
     private fun confirmDelete(measurement: MeasurementResult) {

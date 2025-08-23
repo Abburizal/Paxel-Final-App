@@ -31,7 +31,8 @@ class ResultActivity : AppCompatActivity() {
     private var currentMeasurementResult: MeasurementResult? = null
     private var isSaved = false
 
-    // Menggunakan 'by viewModels' untuk inisialisasi ViewModel yang direkomendasikan dan bersih.
+    // [PERBAIKAN UTAMA] Inisialisasi ViewModel dengan ViewModelFactory.
+    // Ini adalah perbaikan untuk error "No value passed for parameter 'repository'".
     private val viewModel: MeasurementViewModel by viewModels {
         val database = AppDatabase.getDatabase(applicationContext)
         val repository = MeasurementRepository(database.measurementDao())
@@ -62,6 +63,7 @@ class ResultActivity : AppCompatActivity() {
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowTitleEnabled(false)
         }
+        // Menggunakan onBackPressedDispatcher modern untuk handle klik navigasi kembali
         binding.toolbar.setNavigationOnClickListener { onBackPressedDispatcher.onBackPressed() }
     }
 
@@ -73,7 +75,6 @@ class ResultActivity : AppCompatActivity() {
             loadMeasurementFromDatabase(measurementId)
         } else {
             // Jika tidak ada ID, berarti hasil baru dari ARMeasurementActivity.
-            // [PERBAIKAN] Menggunakan metode getParcelable yang kompatibel untuk semua versi Android.
             val result: MeasurementResult? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 intent.getParcelableExtra(EXTRA_MEASUREMENT_RESULT, MeasurementResult::class.java)
             } else {
@@ -101,7 +102,7 @@ class ResultActivity : AppCompatActivity() {
                     isSaved = true // Data dari DB sudah pasti tersimpan.
                     displayMeasurementResult(resultFromDb, resultFromDb.packageName, resultFromDb.declaredSize)
                     updateButtonStates()
-                    invalidateOptionsMenu() // Perbarui menu setelah state berubah.
+                    invalidateOptionsMenu() // Perbarui menu untuk menampilkan/menyembunyikan tombol hapus.
                 } else {
                     showError("Pengukuran tidak ditemukan")
                     finish()
@@ -128,6 +129,7 @@ class ResultActivity : AppCompatActivity() {
         binding.tvDepth.text = "${decimalFormat.format(depthCm)} cm"
         binding.tvVolume.text = "${decimalFormat.format(volumeCm3)} cm³"
 
+        // Logika estimasi harga dan kategori
         val (category, price) = when {
             volumeCm3 <= 1000 -> "Kecil" to 10000
             volumeCm3 <= 5000 -> "Sedang" to 20000
@@ -145,6 +147,7 @@ class ResultActivity : AppCompatActivity() {
         }
         binding.btnNewMeasurement.setOnClickListener {
             it.safeHapticFeedback()
+            // Cek jika ada data yang belum disimpan sebelum memulai pengukuran baru
             if (!isSaved && currentMeasurementResult != null) {
                 showSaveConfirmationDialog(
                     onSave = {
@@ -162,6 +165,7 @@ class ResultActivity : AppCompatActivity() {
     private fun setupBackPressedHandler() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                // Cek jika ada data yang belum disimpan sebelum menutup activity
                 if (!isSaved && currentMeasurementResult != null) {
                     showSaveConfirmationDialog(
                         onSave = {
@@ -171,6 +175,7 @@ class ResultActivity : AppCompatActivity() {
                         onDontSave = { finish() }
                     )
                 } else {
+                    // Jika sudah disimpan atau tidak ada data, langsung tutup
                     finish()
                 }
             }
@@ -187,11 +192,10 @@ class ResultActivity : AppCompatActivity() {
             val declaredSize = intent.getStringExtra(EXTRA_DECLARED_SIZE) ?: "N/A"
             val resultToSave = it.copy(packageName = packageName, declaredSize = declaredSize)
 
-            // Memanggil fungsi dari ViewModel. ViewModel yang akan menangani coroutine.
             viewModel.saveMeasurement(resultToSave)
-
             isSaved = true
             Toast.makeText(this, "Pengukuran berhasil disimpan", Toast.LENGTH_SHORT).show()
+
             updateButtonStates()
             invalidateOptionsMenu() // Perbarui menu untuk menampilkan tombol hapus.
         }
@@ -199,7 +203,7 @@ class ResultActivity : AppCompatActivity() {
 
     private fun updateButtonStates() {
         if (isSaved) {
-            binding.btnSaveResult.text = "Tersimpan"
+            binding.btnSaveResult.text = getString(R.string.status_saved)
             binding.btnSaveResult.setIconResource(R.drawable.ic_check)
             binding.btnSaveResult.isEnabled = false
         }
@@ -232,9 +236,14 @@ class ResultActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_result, menu)
-        val deleteItem = menu?.findItem(R.id.action_delete)
-        deleteItem?.isVisible = isSaved // Tampilkan tombol hapus hanya jika data sudah tersimpan.
         return true
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        val deleteItem = menu?.findItem(R.id.action_delete)
+        // Tombol hapus hanya terlihat jika data berasal dari database (isSaved == true)
+        deleteItem?.isVisible = isSaved
+        return super.onPrepareOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -252,18 +261,23 @@ class ResultActivity : AppCompatActivity() {
     }
 
     private fun shareMeasurementResult() {
-        val result = currentMeasurementResult ?: return
-        val shareText = "Hasil Pengukuran Paket: ${result.packageName ?: "-"}, Lebar: ${"%.2f".format(result.width*100)} cm, Tinggi: ${"%.2f".format(result.height*100)} cm, Panjang: ${"%.2f".format(result.depth*100)} cm."
-        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-            putExtra(Intent.EXTRA_TEXT, shareText)
-            type = "text/plain"
-        }
-        startActivity(Intent.createChooser(shareIntent, "Bagikan Hasil Pengukuran"))
+        currentMeasurementResult?.let { result ->
+            val shareText = "Hasil Pengukuran Paket: ${result.packageName ?: "-"}\n" +
+                    "Dimensi: ${"%.2f".format(result.width * 100)} x " +
+                    "${"%.2f".format(result.height * 100)} x " +
+                    "${"%.2f".format(result.depth * 100)} cm"
+
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                putExtra(Intent.EXTRA_TEXT, shareText)
+                type = "text/plain"
+            }
+            startActivity(Intent.createChooser(shareIntent, "Bagikan Hasil Pengukuran"))
+        } ?: Toast.makeText(this, "Tidak ada data untuk dibagikan", Toast.LENGTH_SHORT).show()
     }
 
     private fun deleteMeasurement() {
-        val idToDelete = currentMeasurementResult?.id ?: 0
-        if (!isSaved || idToDelete <= 0) {
+        val idToDelete = currentMeasurementResult?.id
+        if (idToDelete == null || idToDelete <= 0) {
             Toast.makeText(this, "Tidak ada data untuk dihapus", Toast.LENGTH_SHORT).show()
             return
         }
@@ -272,10 +286,9 @@ class ResultActivity : AppCompatActivity() {
             .setTitle("Hapus Pengukuran")
             .setMessage("Yakin ingin menghapus hasil pengukuran ini secara permanen?")
             .setPositiveButton("Hapus") { _, _ ->
-                // [PERBAIKAN] Panggil ViewModel langsung, tanpa lifecycleScope.
                 viewModel.deleteMeasurementById(idToDelete)
                 Toast.makeText(this@ResultActivity, "Pengukuran berhasil dihapus", Toast.LENGTH_SHORT).show()
-                finish() // Kembali ke layar sebelumnya setelah hapus.
+                finish() // Kembali ke layar sebelumnya (HistoryActivity) setelah hapus.
             }
             .setNegativeButton("Batal", null)
             .show()
