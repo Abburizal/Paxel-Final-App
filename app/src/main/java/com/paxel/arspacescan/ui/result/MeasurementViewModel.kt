@@ -6,105 +6,102 @@ import com.paxel.arspacescan.data.model.MeasurementResult
 import com.paxel.arspacescan.data.model.PackageMeasurement
 import com.paxel.arspacescan.data.repository.MeasurementRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 class MeasurementViewModel(private val repository: MeasurementRepository) : ViewModel() {
 
-    suspend fun saveMeasurement(measurementResult: MeasurementResult): Long {
-        // Convert MeasurementResult to PackageMeasurement for database storage
-        val packageMeasurement = PackageMeasurement(
-            id = measurementResult.id,
-            packageName = measurementResult.packageName ?: "",
-            declaredSize = measurementResult.declaredSize ?: "",
-            measuredWidth = measurementResult.width,
-            measuredHeight = measurementResult.height,
-            measuredDepth = measurementResult.depth,
-            measuredVolume = measurementResult.volume,
-            timestamp = measurementResult.timestamp,
-            isValidated = true
-        )
-        return repository.insert(packageMeasurement)
+    private val _csvExportResult = MutableSharedFlow<String>()
+    val csvExportResult = _csvExportResult.asSharedFlow()
+
+    fun saveMeasurement(measurementResult: MeasurementResult) {
+        viewModelScope.launch {
+            repository.insert(measurementResult.toPackageMeasurement())
+        }
     }
 
+    // [PERBAIKAN] Fungsi ini tidak lagi 'suspend' dan mengembalikan 'Flow'.
+    // Ini adalah cara yang benar untuk mengobservasi data tunggal dari database.
     fun getMeasurementById(id: Long): Flow<MeasurementResult?> {
-        return repository.getAllMeasurements().map { measurements ->
-            measurements.find { it.id == id }?.let { packageMeasurement ->
-                // Convert PackageMeasurement to MeasurementResult
-                MeasurementResult(
-                    id = packageMeasurement.id,
-                    width = packageMeasurement.measuredWidth,
-                    height = packageMeasurement.measuredHeight,
-                    depth = packageMeasurement.measuredDepth,
-                    volume = packageMeasurement.measuredVolume,
-                    timestamp = packageMeasurement.timestamp,
-                    packageName = packageMeasurement.packageName,
-                    declaredSize = packageMeasurement.declaredSize
-                )
-            }
-        }
+        return repository.getMeasurementById(id).map { it?.toMeasurementResult() }
     }
 
     fun getAllMeasurements(): Flow<List<MeasurementResult>> {
         return repository.getAllMeasurements().map { packageMeasurements ->
-            packageMeasurements.map { packageMeasurement ->
-                MeasurementResult(
-                    id = packageMeasurement.id,
-                    width = packageMeasurement.measuredWidth,
-                    height = packageMeasurement.measuredHeight,
-                    depth = packageMeasurement.measuredDepth,
-                    volume = packageMeasurement.measuredVolume,
-                    timestamp = packageMeasurement.timestamp,
-                    packageName = packageMeasurement.packageName,
-                    declaredSize = packageMeasurement.declaredSize
-                )
-            }
+            packageMeasurements.map { it.toMeasurementResult() }
         }
     }
 
-    suspend fun deleteMeasurementById(id: Long) {
-        val packageMeasurement = repository.getMeasurementById(id)
-        packageMeasurement?.let {
-            repository.delete(it)
+    fun deleteMeasurementById(id: Long) {
+        viewModelScope.launch {
+            repository.deleteMeasurementById(id)
         }
     }
 
-    suspend fun updateMeasurement(measurementResult: MeasurementResult) {
-        val packageMeasurement = PackageMeasurement(
-            id = measurementResult.id,
-            packageName = measurementResult.packageName ?: "",
-            declaredSize = measurementResult.declaredSize ?: "",
-            measuredWidth = measurementResult.width,
-            measuredHeight = measurementResult.height,
-            measuredDepth = measurementResult.depth,
-            measuredVolume = measurementResult.volume,
-            timestamp = measurementResult.timestamp,
-            isValidated = true
-        )
-        repository.update(packageMeasurement)
+    // [PERBAIKAN] Tambahkan fungsi ini untuk HistoryActivity
+    fun deleteAllMeasurements() {
+        viewModelScope.launch {
+            repository.deleteAllMeasurements()
+        }
     }
 
-    suspend fun exportToCSV(): String {
-        val measurements = repository.getAllMeasurements()
-        val csvHeader = "ID,Package Name,Declared Size,Width(cm),Height(cm),Depth(cm),Volume(cm³),Timestamp,Validated\n"
+    fun updateMeasurement(measurementResult: MeasurementResult) {
+        viewModelScope.launch {
+            repository.update(measurementResult.toPackageMeasurement())
+        }
+    }
 
-        val csvContent = StringBuilder(csvHeader)
+    fun exportToCSV() {
+        viewModelScope.launch {
+            val csvHeader = "ID,Package Name,Declared Size,Width(cm),Height(cm),Depth(cm),Volume(cm³),Timestamp,Validated\n"
+            val csvContent = StringBuilder(csvHeader)
+            val measurementList = repository.getAllMeasurements().first()
 
-        // Convert Flow to List for CSV export
-        measurements.collect { measurementList ->
             measurementList.forEach { measurement ->
                 csvContent.append("${measurement.id},")
                 csvContent.append("\"${measurement.packageName}\",")
                 csvContent.append("\"${measurement.declaredSize}\",")
-                csvContent.append("${measurement.measuredWidth * 100},") // Convert to cm
+                csvContent.append("${measurement.measuredWidth * 100},")
                 csvContent.append("${measurement.measuredHeight * 100},")
                 csvContent.append("${measurement.measuredDepth * 100},")
-                csvContent.append("${measurement.measuredVolume * 1000000},") // Convert to cm³
-                csvContent.append("${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(java.util.Date(measurement.timestamp))},")
+                csvContent.append("${measurement.measuredVolume * 1_000_000},")
+                csvContent.append("${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(java.util.Date(measurement.timestamp))},")
                 csvContent.append("${measurement.isValidated}\n")
             }
+            _csvExportResult.emit(csvContent.toString())
         }
+    }
 
-        return csvContent.toString()
+    // --- Extension Functions untuk Konversi Data ---
+
+    private fun PackageMeasurement.toMeasurementResult(): MeasurementResult {
+        return MeasurementResult(
+            id = this.id,
+            width = this.measuredWidth,
+            height = this.measuredHeight,
+            depth = this.measuredDepth,
+            volume = this.measuredVolume,
+            timestamp = this.timestamp,
+            packageName = this.packageName,
+            declaredSize = this.declaredSize
+        )
+    }
+
+    private fun MeasurementResult.toPackageMeasurement(): PackageMeasurement {
+        return PackageMeasurement(
+            id = this.id,
+            packageName = this.packageName ?: "",
+            declaredSize = this.declaredSize ?: "",
+            measuredWidth = this.width,
+            measuredHeight = this.height,
+            measuredDepth = this.depth,
+            measuredVolume = this.volume,
+            timestamp = this.timestamp,
+            isValidated = true
+        )
     }
 }

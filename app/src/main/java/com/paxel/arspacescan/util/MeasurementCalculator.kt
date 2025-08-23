@@ -30,11 +30,8 @@ object MeasurementCalculator {
         val pE = corners[4].worldPosition // Sudut E (atas, di atas A)
 
         // Hitung dimensi dalam meter.
-        // Panjang (depth) diasumsikan sebagai jarak antara A dan B.
         val length = Vector3.subtract(pB, pA).length()
-        // Lebar diasumsikan sebagai jarak antara A dan D.
         val width = Vector3.subtract(pD, pA).length()
-        // Tinggi adalah perbedaan absolut sumbu Y antara sudut atas dan bawahnya.
         val height = abs(pE.y - pA.y)
 
         // Validasi hasil perhitungan untuk menghindari nilai nol atau tidak valid.
@@ -53,8 +50,8 @@ object MeasurementCalculator {
             depth = length,
             volume = volume,
             timestamp = System.currentTimeMillis(),
-            packageName = null, // Akan diisi nanti
-            declaredSize = null // Akan diisi nanti
+            packageName = null, // Akan diisi nanti oleh ResultActivity
+            declaredSize = null // Akan diisi nanti oleh ResultActivity
         )
     }
 }

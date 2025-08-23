@@ -1,6 +1,7 @@
 package com.paxel.arspacescan.ui.history
 
 import android.content.ContentValues
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -8,150 +9,115 @@ import android.provider.MediaStore
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.TextView
+import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SearchView
-import androidx.lifecycle.ViewModelProvider
+import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputEditText
 import com.paxel.arspacescan.R
 import com.paxel.arspacescan.data.local.AppDatabase
 import com.paxel.arspacescan.data.model.MeasurementResult
 import com.paxel.arspacescan.data.repository.MeasurementRepository
 import com.paxel.arspacescan.ui.result.MeasurementViewModel
 import com.paxel.arspacescan.ui.result.MeasurementViewModelFactory
+import com.paxel.arspacescan.ui.result.ResultActivity
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
-import java.text.SimpleDateFormat
 import java.util.*
 
 class HistoryActivity : AppCompatActivity() {
 
+    // [FINAL] Deklarasi variabel yang benar sesuai dengan layout XML.
     private lateinit var recyclerView: RecyclerView
-    private lateinit var emptyView: TextView
+    private lateinit var emptyStateLayout: LinearLayout
+    private lateinit var progressBar: ProgressBar
+    private lateinit var searchEditText: TextInputEditText
     private lateinit var adapter: MeasurementAdapter
-    private lateinit var measurementViewModel: MeasurementViewModel
+
+    private val measurementViewModel: MeasurementViewModel by viewModels {
+        val database = AppDatabase.getDatabase(this)
+        val repository = MeasurementRepository(database.measurementDao())
+        MeasurementViewModelFactory(repository)
+    }
+
     private var allMeasurements = listOf<MeasurementResult>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_history)
 
-        supportActionBar?.title = "Riwayat Pengukuran"
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-        setupViewModel()
+        setupToolbar()
+        setupViews()
         setupRecyclerView()
-        observeData()
+        setupSearch()
+        observeViewModel()
     }
 
-    private fun setupViewModel() {
-        val database = AppDatabase.getDatabase(this)
-        val repository = MeasurementRepository(database.measurementDao())
-        val viewModelFactory = MeasurementViewModelFactory(repository)
-        measurementViewModel = ViewModelProvider(this, viewModelFactory)
-            .get(MeasurementViewModel::class.java)
+    private fun setupToolbar() {
+        val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    }
+
+    private fun setupViews() {
+        recyclerView = findViewById(R.id.recyclerView)
+        emptyStateLayout = findViewById(R.id.emptyStateLayout)
+        progressBar = findViewById(R.id.progressBar)
+        searchEditText = findViewById(R.id.etSearch)
     }
 
     private fun setupRecyclerView() {
-        recyclerView = findViewById(R.id.recyclerView)
-        emptyView = findViewById(R.id.tvEmpty)
-
         adapter = MeasurementAdapter(
             onItemClick = { measurement ->
-                showMeasurementDetails(measurement)
+                val intent = Intent(this, ResultActivity::class.java).apply {
+                    putExtra(ResultActivity.EXTRA_MEASUREMENT_ID, measurement.id)
+                }
+                startActivity(intent)
             },
             onDeleteClick = { measurement ->
                 confirmDelete(measurement)
             }
         )
-
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
     }
 
-    private fun observeData() {
+    private fun setupSearch() {
+        searchEditText.addTextChangedListener { text ->
+            filterMeasurements(text.toString())
+        }
+    }
+
+    private fun observeViewModel() {
         lifecycleScope.launch {
+            progressBar.visibility = View.VISIBLE
+            emptyStateLayout.visibility = View.GONE
+            recyclerView.visibility = View.GONE
+
             measurementViewModel.getAllMeasurements().collect { measurements ->
+                progressBar.visibility = View.GONE
                 allMeasurements = measurements
-                adapter.submitList(measurements)
-
-                if (measurements.isEmpty()) {
-                    recyclerView.visibility = View.GONE
-                    emptyView.visibility = View.VISIBLE
-                } else {
-                    recyclerView.visibility = View.VISIBLE
-                    emptyView.visibility = View.GONE
-                }
+                // Terapkan filter awal dengan query yang mungkin sudah ada.
+                filterMeasurements(searchEditText.text.toString())
             }
         }
-    }
 
-    private fun showMeasurementDetails(measurement: MeasurementResult) {
-        val dateFormat = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale("id", "ID"))
-
-        MaterialAlertDialogBuilder(this)
-            .setTitle(measurement.packageName ?: "Pengukuran")
-            .setMessage("""
-                Tanggal: ${dateFormat.format(Date(measurement.timestamp))}
-                
-                Dimensi:
-                Panjang: ${String.format("%.2f", measurement.depth * 100)} cm
-                Lebar: ${String.format("%.2f", measurement.width * 100)} cm
-                Tinggi: ${String.format("%.2f", measurement.height * 100)} cm
-                
-                Volume: ${String.format("%.2f", measurement.volume * 1_000_000)} cm³
-            """.trimIndent())
-            .setPositiveButton("OK", null)
-            .show()
-    }
-
-    private fun confirmDelete(measurement: MeasurementResult) {
-        MaterialAlertDialogBuilder(this)
-            .setTitle("Hapus Pengukuran")
-            .setMessage("Apakah Anda yakin ingin menghapus pengukuran ini?")
-            .setPositiveButton("Hapus") { _, _ ->
-                deleteMeasurement(measurement)
-            }
-            .setNegativeButton("Batal", null)
-            .show()
-    }
-
-    private fun deleteMeasurement(measurement: MeasurementResult) {
         lifecycleScope.launch {
-            try {
-                measurementViewModel.deleteMeasurementById(measurement.id)
-                Toast.makeText(this@HistoryActivity, "Pengukuran berhasil dihapus", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) {
-                Toast.makeText(this@HistoryActivity, "Gagal menghapus: ${e.message}", Toast.LENGTH_SHORT).show()
+            measurementViewModel.csvExportResult.collect { csvContent ->
+                saveCSVFile(csvContent)
             }
         }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_history, menu)
-
-        val searchItem = menu?.findItem(R.id.action_search)
-        val searchView = searchItem?.actionView as? SearchView
-
-        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean = false
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                filterMeasurements(newText ?: "")
-                return true
-            }
-        })
-
-        return true
     }
 
     private fun filterMeasurements(query: String) {
-        val filteredList = if (query.isEmpty()) {
+        val filteredList = if (query.isBlank()) {
             allMeasurements
         } else {
             allMeasurements.filter {
@@ -159,6 +125,40 @@ class HistoryActivity : AppCompatActivity() {
             }
         }
         adapter.submitList(filteredList)
+
+        // [FINAL] Logika terpusat untuk mengatur visibilitas UI.
+        if (filteredList.isEmpty() && allMeasurements.isNotEmpty()) {
+            // Tampilkan empty state jika hasil filter kosong TAPI data asli ada
+            recyclerView.visibility = View.GONE
+            emptyStateLayout.visibility = View.VISIBLE
+        } else if (allMeasurements.isEmpty()){
+            // Tampilkan empty state jika memang tidak ada data sama sekali
+            recyclerView.visibility = View.GONE
+            emptyStateLayout.visibility = View.VISIBLE
+        }
+        else {
+            recyclerView.visibility = View.VISIBLE
+            emptyStateLayout.visibility = View.GONE
+        }
+    }
+
+    private fun confirmDelete(measurement: MeasurementResult) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Hapus Pengukuran")
+            .setMessage("Yakin ingin menghapus pengukuran untuk '${measurement.packageName}'?")
+            .setPositiveButton("Hapus") { _, _ ->
+                measurementViewModel.deleteMeasurementById(measurement.id)
+                Toast.makeText(this, "Pengukuran dihapus", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    // [FINAL] Logika SearchView dihapus total dari sini.
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_history, menu)
+        menu?.findItem(R.id.action_search)?.isVisible = false
+        return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -168,7 +168,7 @@ class HistoryActivity : AppCompatActivity() {
                 true
             }
             R.id.action_export -> {
-                exportToCSV()
+                measurementViewModel.exportToCSV()
                 true
             }
             R.id.action_delete_all -> {
@@ -179,50 +179,27 @@ class HistoryActivity : AppCompatActivity() {
         }
     }
 
-    private fun exportToCSV() {
-        lifecycleScope.launch {
-            try {
-                val csvContent = measurementViewModel.exportToCSV()
-                saveCSVFile(csvContent)
-            } catch (e: Exception) {
-                Toast.makeText(
-                    this@HistoryActivity,
-                    "Gagal mengekspor data: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
-    }
-
     private fun saveCSVFile(content: String) {
         val filename = "paxel_measurements_${System.currentTimeMillis()}.csv"
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val contentValues = ContentValues().apply {
-                put(MediaStore.Downloads.DISPLAY_NAME, filename)
-                put(MediaStore.Downloads.MIME_TYPE, "text/csv")
-                put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+            val values = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                put(MediaStore.MediaColumns.MIME_TYPE, "text/csv")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
             }
-
-            val resolver = contentResolver
-            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
-
-            uri?.let {
-                resolver.openOutputStream(it)?.use { outputStream ->
+            contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)?.let { uri ->
+                contentResolver.openOutputStream(uri)?.use { outputStream ->
                     outputStream.write(content.toByteArray())
-                    Toast.makeText(this, "Data berhasil diekspor ke Downloads/$filename", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Data diekspor ke folder Downloads", Toast.LENGTH_LONG).show()
                 }
             }
         } else {
-            // For API < 29, use legacy external storage access
+            @Suppress("DEPRECATION")
             val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             val file = File(downloadsDir, filename)
-
             try {
-                FileOutputStream(file).use { outputStream ->
-                    outputStream.write(content.toByteArray())
-                    Toast.makeText(this, "Data berhasil diekspor ke ${file.absolutePath}", Toast.LENGTH_LONG).show()
-                }
+                FileOutputStream(file).use { it.write(content.toByteArray()) }
+                Toast.makeText(this, "Data diekspor ke ${file.absolutePath}", Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
                 Toast.makeText(this, "Gagal menyimpan file: ${e.message}", Toast.LENGTH_SHORT).show()
             }
@@ -231,23 +208,14 @@ class HistoryActivity : AppCompatActivity() {
 
     private fun confirmDeleteAll() {
         MaterialAlertDialogBuilder(this)
-            .setTitle("Hapus Semua")
-            .setMessage("Apakah Anda yakin ingin menghapus semua pengukuran?")
+            .setTitle("Hapus Semua Riwayat")
+            .setMessage("Apakah Anda yakin ingin menghapus SEMUA pengukuran secara permanen?")
             .setPositiveButton("Hapus Semua") { _, _ ->
-                deleteAllMeasurements()
+                // [FINAL] Panggil fungsi yang benar di ViewModel.
+                measurementViewModel.deleteAllMeasurements()
+                Toast.makeText(this, "Semua riwayat dihapus", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Batal", null)
             .show()
-    }
-
-    private fun deleteAllMeasurements() {
-        lifecycleScope.launch {
-            try {
-                // Delete all akan diimplementasi di DAO
-                Toast.makeText(this@HistoryActivity, "Semua pengukuran berhasil dihapus", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) {
-                Toast.makeText(this@HistoryActivity, "Gagal menghapus: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-        }
     }
 }
