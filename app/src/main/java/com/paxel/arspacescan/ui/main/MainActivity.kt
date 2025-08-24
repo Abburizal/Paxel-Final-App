@@ -113,6 +113,7 @@ class MainActivity : AppCompatActivity(), PackageInputDialog.OnPackageInputListe
         }
     }
 
+
     // [PERBAIKAN] Implementasi OnPackageInputListener yang sudah diperbarui
     override fun onPackageInput(packageName: String) {
         // Handle data input paket yang diterima dari PackageInputDialog

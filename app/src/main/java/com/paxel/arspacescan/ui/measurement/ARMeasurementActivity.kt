@@ -1,5 +1,5 @@
 package com.paxel.arspacescan.ui.measurement
-
+import android.Manifest
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -100,7 +100,8 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
 
     // Photo capture constants
     companion object {
-        private const val STORAGE_PERMISSION_REQUEST_CODE = 100
+        private const val CAMERA_PERMISSION_CODE = 100 // Sudah ada
+        private const val STORAGE_PERMISSION_REQUEST_CODE = 101 // Tambahkan ini
         private const val WRITE_EXTERNAL_STORAGE = android.Manifest.permission.WRITE_EXTERNAL_STORAGE
     }
 
@@ -194,7 +195,6 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
                     showUserFeedback("Tunggu hingga permukaan terdeteksi dengan baik")
                     return@setOnTapArPlaneListener
                 }
-// [PERBAIKAN] Filter hitResult yang sudah ada divalidasi lebih lanjut
                 if (!isHitResultValid(hitResult, plane)) {
                     // Pesan spesifik jika terlalu jauh
                     if (hitResult.distance > 5.0f) {
@@ -505,16 +505,51 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
         finish()
     }
 
-    /**
-     * Improved photo capture with better validation and debugging
-     */
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        when (requestCode) {
+            CAMERA_PERMISSION_CODE -> {
+                // Logika izin kamera yang sudah ada (jika ada)
+            }
+            STORAGE_PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Jika izin diberikan, panggil kembali takePhoto()
+                    takePhoto()
+                } else {
+                    Toast.makeText(
+                        this,
+                        "Izin penyimpanan diperlukan untuk menyimpan foto",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+    }
     private fun takePhoto() {
+        // --- Periksa Izin Penyimpanan untuk Android 9 ke bawah ---
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                    STORAGE_PERMISSION_REQUEST_CODE
+                )
+                return // Hentikan proses jika izin belum diberikan
+            }
+        }
         val fragment = arFragment ?: run {
             Toast.makeText(this, "AR Fragment tidak tersedia", Toast.LENGTH_SHORT).show()
             return
         }
 
         val arSceneView = fragment.arSceneView
+
         if (arSceneView.arFrame == null || arSceneView.arFrame?.camera?.trackingState != TrackingState.TRACKING) {
             Toast.makeText(this, "Tunggu hingga kamera AR tracking dengan baik", Toast.LENGTH_SHORT).show()
             return
