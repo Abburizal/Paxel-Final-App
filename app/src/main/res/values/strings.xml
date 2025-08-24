@@ -54,6 +54,8 @@
     <string name="search_hint">Cari pengukuran...</string>
     <string name="export_csv">Ekspor CSV</string>
     <string name="delete_all">Hapus Semua</string>
+    <string name="delete">Hapus</string> <string name="delete_measurement_title">Hapus Pengukuran</string>
+
 
     <!-- Activity Titles -->
     <string name="measurement_results">Hasil Pengukuran</string>

@@ -75,12 +75,16 @@ class ResultActivity : AppCompatActivity() {
             loadMeasurementFromDatabase(measurementId)
         } else {
             // Jika tidak ada ID, berarti hasil baru dari ARMeasurementActivity.
-            val result: MeasurementResult? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                intent.getParcelableExtra(EXTRA_MEASUREMENT_RESULT, MeasurementResult::class.java)
-            } else {
-                @Suppress("DEPRECATION")
-                intent.getParcelableExtra(EXTRA_MEASUREMENT_RESULT)
-            }
+            val result: MeasurementResult? =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableExtra(
+                        EXTRA_MEASUREMENT_RESULT,
+                        MeasurementResult::class.java
+                    )
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableExtra(EXTRA_MEASUREMENT_RESULT)
+                }
 
             if (result != null) {
                 currentMeasurementResult = result
@@ -100,7 +104,11 @@ class ResultActivity : AppCompatActivity() {
                 if (resultFromDb != null) {
                     currentMeasurementResult = resultFromDb
                     isSaved = true // Data dari DB sudah pasti tersimpan.
-                    displayMeasurementResult(resultFromDb, resultFromDb.packageName, resultFromDb.declaredSize)
+                    displayMeasurementResult(
+                        resultFromDb,
+                        resultFromDb.packageName,
+                        resultFromDb.declaredSize
+                    )
                     updateButtonStates()
                     invalidateOptionsMenu() // Perbarui menu untuk menampilkan/menyembunyikan tombol hapus.
                 } else {
@@ -111,7 +119,11 @@ class ResultActivity : AppCompatActivity() {
         }
     }
 
-    private fun displayMeasurementResult(result: MeasurementResult, packageName: String?, declaredSize: String?) {
+    private fun displayMeasurementResult(
+        result: MeasurementResult,
+        packageName: String?,
+        declaredSize: String?
+    ) {
         val decimalFormat = DecimalFormat("#,##0.00")
         val dateFormat = SimpleDateFormat("dd MMMM yyyy, HH:mm 'WIB'", Locale("id", "ID"))
 
@@ -252,10 +264,12 @@ class ResultActivity : AppCompatActivity() {
                 shareMeasurementResult()
                 true
             }
+
             R.id.action_delete -> {
                 deleteMeasurement()
                 true
             }
+
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -283,14 +297,20 @@ class ResultActivity : AppCompatActivity() {
         }
 
         AlertDialog.Builder(this)
-            .setTitle("Hapus Pengukuran")
+            // Menggunakan string yang benar untuk judul
+            .setTitle(getString(R.string.delete_measurement_title))
             .setMessage("Yakin ingin menghapus hasil pengukuran ini secara permanen?")
-            .setPositiveButton("Hapus") { _, _ ->
+            // PERBAIKAN: Menggunakan R.string.delete, bukan R.id.action_delete
+            .setPositiveButton(getString(R.string.delete)) { _, _ ->
                 viewModel.deleteMeasurementById(idToDelete)
-                Toast.makeText(this@ResultActivity, "Pengukuran berhasil dihapus", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@ResultActivity,
+                    "Pengukuran berhasil dihapus",
+                    Toast.LENGTH_SHORT
+                ).show()
                 finish() // Kembali ke layar sebelumnya (HistoryActivity) setelah hapus.
             }
-            .setNegativeButton("Batal", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 }

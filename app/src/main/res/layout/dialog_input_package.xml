@@ -1,40 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom_sheet"
     android:orientation="vertical"
-    android:paddingHorizontal="24dp"
-    android:paddingVertical="20dp">
+    android:padding="24dp"
+    tools:context=".ui.main.MainActivity">
+
+    <View
+        android:layout_width="32dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_handle" />
+
+    <TextView
+        android:id="@+id/tvDialogTitle"
+        style="@style/TextAppearance.PaxelAR.TitleMedium"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:text="@string/package_name_title"
+        android:textColor="@color/text_primary" />
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilPackageName"
+        style="@style/Widget.PaxelAR.TextInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Nama / ID Paket (Opsional)"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        android:hint="@string/package_name_hint">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etPackageName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:maxLines="1" />
-
+            android:inputType="textCapWords"
+            android:maxLines="1"
+            android:minHeight="48dp" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Ukuran Deklarasi Pengirim"
-        android:textColor="?android:attr/textColorSecondary"
-        android:textSize="12sp"/>
-
-    <Spinner
-        android:id="@+id/spinnerPackageSize"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginTop="4dp"
-        android:background="@drawable/bg_spinner"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"/>
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancel"
+            style="@style/Widget.PaxelAR.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="@string/cancel" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSubmit"
+            style="@style/Widget.PaxelAR.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/ok"
+            app:icon="@drawable/ic_arrow_forward" />
+    </LinearLayout>
+
 </LinearLayout>

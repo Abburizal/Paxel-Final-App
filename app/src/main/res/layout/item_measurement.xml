@@ -2,271 +2,67 @@
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    style="@style/Widget.PaxelAR.CardView"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginVertical="4dp"
-    android:clickable="true"
-    android:focusable="true"
-    android:foreground="?attr/selectableItemBackground">
+    android:layout_marginStart="16dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginBottom="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/stroke_color">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- Package Thumbnail -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cvThumbnail"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="1dp"
+        <ImageView
+            android:id="@+id/ivIcon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@mipmap/ic_paxel_logo"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toTopOf="parent"
+            android:contentDescription="@string/logo_description" />
 
-            <ImageView
-                android:id="@+id/ivPackageThumbnail"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/surface_variant"
-                android:contentDescription="Package thumbnail"
-                android:scaleType="centerCrop"
-                tools:src="@drawable/ic_local_shipping" />
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Package Name -->
         <TextView
             android:id="@+id/tvPackageName"
-            style="?attr/textAppearanceTitleMedium"
+            style="@style/TextAppearance.PaxelAR.TitleSmall"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginEnd="8dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="Package Measurement"
-            android:textColor="@color/text_dark_gray"
-            app:layout_constraintEnd_toStartOf="@+id/btnExpand"
-            app:layout_constraintStart_toEndOf="@+id/cvThumbnail"
-            app:layout_constraintTop_toTopOf="@+id/cvThumbnail"
-            tools:text="Sample Package" />
+            android:layout_marginEnd="16dp"
+            android:textColor="@color/text_primary"
+            app:layout_constraintEnd_toStartOf="@+id/btnDelete"
+            app:layout_constraintStart_toEndOf="@id/ivIcon"
+            app:layout_constraintTop_toTopOf="@id/ivIcon"
+            tools:text="Paket Dokumen Penting" />
 
-        <!-- Date -->
         <TextView
-            android:id="@+id/tvDate"
-            style="?attr/textAppearanceBodyLarge"
+            android:id="@+id/tvTimestamp"
+            style="@style/TextAppearance.PaxelAR.BodySmall"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
             android:layout_marginTop="4dp"
-            android:layout_marginEnd="8dp"
-            android:text="Aug 12, 2025"
-            android:textColor="@color/text_medium_gray"
-            app:layout_constraintEnd_toStartOf="@+id/btnExpand"
-            app:layout_constraintStart_toEndOf="@+id/cvThumbnail"
-            app:layout_constraintTop_toBottomOf="@+id/tvPackageName"
-            tools:text="Aug 12, 2025 - 14:30" />
+            android:textColor="@color/text_secondary"
+            app:layout_constraintStart_toStartOf="@id/tvPackageName"
+            app:layout_constraintTop_toBottomOf="@id/tvPackageName"
+            app:layout_constraintEnd_toEndOf="@id/tvPackageName"
+            tools:text="24 Agustus 2025, 10:30 WIB" />
 
-        <!-- Expand Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnExpand"
-            style="@style/Widget.Material3.Button.IconButton"
+        <ImageButton
+            android:id="@+id/btnDelete"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:contentDescription="Expand details"
-            app:icon="@drawable/ic_expand_more"
-            app:iconTint="@color/text_medium_gray"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_delete"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <!-- Expandable Details Section -->
-        <LinearLayout
-            android:id="@+id/layoutExpandableDetails"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:orientation="vertical"
-            android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/cvThumbnail"
-            tools:visibility="visible">
-
-            <!-- Divider -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginBottom="16dp"
-                android:background="@color/divider" />
-
-            <!-- Dimensions Grid -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="3">
-
-                <!-- Length -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <TextView
-                        style="?attr/textAppearanceBodyLarge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="L"
-                        android:textColor="@color/primary"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvLength"
-                        style="?attr/textAppearanceBodyLarge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="25.0"
-                        android:textColor="@color/text_dark_gray"
-                        android:textStyle="bold"
-                        tools:text="25.0" />
-
-                    <TextView
-                        style="?attr/textAppearanceBodyLarge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="cm"
-                        android:textColor="@color/text_medium_gray"
-                        android:textSize="12sp" />
-
-                </LinearLayout>
-
-                <!-- Width -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <TextView
-                        style="?attr/textAppearanceBodyLarge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="W"
-                        android:textColor="@color/primary"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvWidth"
-                        style="?attr/textAppearanceBodyLarge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="15.0"
-                        android:textColor="@color/text_dark_gray"
-                        android:textStyle="bold"
-                        tools:text="15.0" />
-
-                    <TextView
-                        style="?attr/textAppearanceBodyLarge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="cm"
-                        android:textColor="@color/text_medium_gray"
-                        android:textSize="12sp" />
-
-                </LinearLayout>
-
-                <!-- Height -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <TextView
-                        style="?attr/textAppearanceBodyLarge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="H"
-                        android:textColor="@color/primary"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvHeight"
-                        style="?attr/textAppearanceBodyLarge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="10.0"
-                        android:textColor="@color/text_dark_gray"
-                        android:textStyle="bold"
-                        tools:text="10.0" />
-
-                    <TextView
-                        style="?attr/textAppearanceBodyLarge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="cm"
-                        android:textColor="@color/text_medium_gray"
-                        android:textSize="12sp" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- Volume Badge -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="16dp"
-                app:cardBackgroundColor="@color/accent_highlight_light"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="0dp">
-
-                <TextView
-                    android:id="@+id/tvVolume"
-                    style="?attr/textAppearanceBodyLarge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="8dp"
-                    android:text="Volume: 3,750 cm³"
-                    android:textColor="@color/accent_highlight_dark"
-                    android:textStyle="bold"
-                    tools:text="Volume: 3,750 cm³" />
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Action Buttons -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:gravity="end"
-                android:orientation="horizontal">
-
-                <!-- Delete Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnDelete"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:contentDescription="Delete measurement"
-                    app:icon="@drawable/ic_delete_outline"
-                    app:iconTint="@color/text_medium_gray" />
-
-            </LinearLayout>
-
-        </LinearLayout>
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:tint="@color/error"
+            android:contentDescription="@string/delete" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </com.google.android.material.card.MaterialCardView>

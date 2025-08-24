@@ -1,80 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Basic Colors -->
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
     <color name="light_gray_background">#F5F5F5</color>
 
-    <!-- Paxel Brand Colors -->
     <color name="primary">#6638e2</color>
     <color name="on_primary">#FFFFFF</color>
     <color name="primary_container">#E8DDFF</color>
     <color name="on_primary_container">#21005D</color>
     <color name="primary_dark">#4A1BA8</color>
 
-    <!-- Brand Colors -->
     <color name="brand_primary">#6638e2</color>
     <color name="brand_primary_light">#8E7BFF</color>
     <color name="paxel_primary">#6638e2</color>
 
-    <!-- Secondary Colors -->
     <color name="secondary">#625B71</color>
     <color name="accent_primary">#6638e2</color>
     <color name="accent_highlight">#6638e2</color>
     <color name="accent_highlight_light">#8E7BFF</color>
     <color name="accent_highlight_dark">#4A1BA8</color>
 
-    <!-- Surface Colors -->
-    <color name="surface">#FDF8F5</color>
-    <color name="on_surface">#1D1B16</color>
-    <color name="surface_variant">#F0E4D1</color>
-    <color name="on_surface_variant">#4F4539</color>
-    <color name="surface_elevated">#F9F4F1</color>
-    <color name="surface_secondary">#F5F0ED</color>
-    <color name="surface_cream">#FDF8F5</color>
+    <color name="text_primary">#1D1B16</color>
+    <color name="text_secondary">#625B71</color>
+    <color name="text_dark_gray">#49454F</color>
+    <color name="text_medium_gray">#79747E</color>
+    <color name="text_light_gray">#CAC4D0</color>
+    <color name="text_on_primary">#FFFFFF</color>
+    <color name="measurement_label">@color/text_secondary</color>
+    <color name="measurement_value">@color/text_primary</color>
 
-    <!-- Background Colors -->
-    <color name="background">#FDF8F5</color>
+    <color name="surface">#FEFBFF</color>
+    <color name="on_surface">#1D1B16</color>
+    <color name="surface_variant">#E7E0EC</color>
+    <color name="on_surface_variant">#49454F</color>
+    <color name="surface_container">#F3EDF7</color>
+    <color name="surface_container_high">#EFE7F3</color>
+    <color name="surface_elevated">#FFFFFF</color>
+    <color name="surface_cream">#FFF7F2</color>
+    <color name="stroke_color">#E0E0E0</color>
+    <color name="surface_secondary">@color/surface_container</color> <color name="background">#FDF8F5</color>
     <color name="on_background">#1D1B16</color>
     <color name="background_light_cream">#FDF8F5</color>
     <color name="background_primary">#FDF8F5</color>
 
-    <!-- Error Colors -->
     <color name="error">#BA1A1A</color>
     <color name="on_error">#FFFFFF</color>
     <color name="error_container">#FFDAD6</color>
     <color name="on_error_container">#410002</color>
     <color name="error_dark">#8B0000</color>
-
-    <!-- Success Colors -->
-    <color name="success">#4CAF50</color>
+    <color name="paxel_red">@color/error</color> <color name="success">#4CAF50</color>
     <color name="success_dark">#2E7D32</color>
 
-    <!-- Info Colors -->
     <color name="info">#2196F3</color>
 
-    <!-- Warning Colors -->
     <color name="warning_light">#FFF3E0</color>
     <color name="warning_dark">#F57C00</color>
 
-    <!-- System Colors -->
     <color name="outline">#81746B</color>
     <color name="outline_variant">#D3C4B4</color>
     <color name="divider">#E0E0E0</color>
+    <color name="transparent">#00000000</color>
 
-    <!-- Gray Scale -->
-    <color name="gray_500">#9E9E9E</color>
-    <color name="gray_600">#757575</color>
-
-    <!-- Text Colors -->
-    <color name="text_primary">#1D1B16</color>
-    <color name="text_medium_gray">#666666</color>
-    <color name="text_dark_gray">#424242</color>
-
-    <!-- Measurement Card Colors -->
-    <color name="measurement_label">#6638e2</color>
-    <color name="measurement_value">#1D1B16</color>
-
-    <!-- Paxel Specific Colors -->
-    <color name="paxel_red">#E53E3E</color>
-</resources>
+    <color name="gray_500">#9E9E9E</color> <color name="gray_600">#757575</color> </resources>

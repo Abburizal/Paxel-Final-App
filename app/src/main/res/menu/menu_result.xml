@@ -20,4 +20,10 @@
         android:title="Bantuan"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/action_delete"
+        android:icon="@android:drawable/ic_menu_delete"
+        android:title="Hapus"
+        app:showAsAction="ifRoom" />
+
 </menu>
