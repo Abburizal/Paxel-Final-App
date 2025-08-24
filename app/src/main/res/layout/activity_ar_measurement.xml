@@ -99,7 +99,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        android:text="Lanjutkan ke Hasil"
+        android:text="@string/btn_continue_to_result"
         android:textColor="@color/white"
         android:textSize="16sp"
         android:textStyle="bold"
@@ -136,7 +136,7 @@
             <ImageView
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:contentDescription="AR tracking help icon"
+                android:contentDescription="@string/ar_tracking_help_icon"
                 android:src="@drawable/ic_move_device"
                 app:tint="@color/white" />
 
@@ -181,14 +181,15 @@
                 android:layout_height="24dp"
                 android:layout_marginEnd="12dp"
                 android:src="@drawable/ic_help"
-                app:tint="@color/warning_dark" />
+                app:tint="@color/warning_dark"
+                android:contentDescription="@string/ar_tracking_help_icon" />
 
             <TextView
                 android:id="@+id/tvObjectDetectionMessage"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Arahkan kamera ke paket untuk memulai pengukuran"
+                android:text="@string/camera_instruction"
                 android:textColor="@color/warning_dark"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -208,7 +209,7 @@
         android:background="@drawable/bg_counter_badge"
         android:gravity="center"
         android:padding="12dp"
-        android:text="Estimated Price: Rp20.000 (Medium)"
+        android:text="@string/estimated_price_medium"
         android:textColor="@color/white"
         android:textSize="16sp"
         android:textStyle="bold"

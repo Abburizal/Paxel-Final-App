@@ -113,6 +113,7 @@
 
     <!--About aplications -->
     <string name="app_description">Selamat datang di Paxel AR ! Ubah cara Anda mengukur paket. Cukup arahkan kamera Anda untuk mendapatkan ukuran panjang, lebar, dan tinggi secara instan. Aplikasi ini memudahkan Anda untuk mengetahui estimasi biaya pengiriman dan menyimpan setiap pengukuran untuk referensi di masa mendatang.</string>
+    <string name="ar_tracking_help_icon">AR tracking help icon</string>
+    <string name="camera_instruction">Arahkan kamera ke paket untuk memulai pengukuran</string>
+    <string name="estimated_price_medium">Estimated Price: Rp20.000 (Medium)</string>
 </resources>
-
-

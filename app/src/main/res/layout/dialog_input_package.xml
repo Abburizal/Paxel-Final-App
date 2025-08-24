@@ -39,6 +39,7 @@
             android:inputType="textCapWords"
             android:maxLines="1"
             android:minHeight="48dp" />
+
     </com.google.android.material.textfield.TextInputLayout>
 
     <LinearLayout

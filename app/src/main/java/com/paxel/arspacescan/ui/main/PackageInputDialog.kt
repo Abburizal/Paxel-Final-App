@@ -29,35 +29,41 @@ class PackageInputDialog : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val inflater = LayoutInflater.from(requireContext())
-        // Pastikan Anda menggunakan layout yang sudah dimodifikasi (tanpa spinner)
         val view = inflater.inflate(R.layout.dialog_input_package, null)
 
         val etPackageName = view.findViewById<EditText>(R.id.etPackageName)
-
-        // Kode untuk 'declaredSize' (tilDeclaredSize, actvDeclaredSize, adapter) telah dihapus
+        val btnCancel = view.findViewById<android.view.View>(R.id.btnCancel)
+        val btnSubmit = view.findViewById<android.view.View>(R.id.btnSubmit)
 
         // Set default package name
         etPackageName.setText(getString(R.string.default_package_name))
 
-        return AlertDialog.Builder(requireContext())
-            .setTitle(R.string.package_name_title)
+        // PERBAIKAN: Menghapus .setTitle() untuk menghilangkan judul ganda
+        val dialog = AlertDialog.Builder(requireContext())
             .setView(view)
-            .setPositiveButton(R.string.ok) { _, _ ->
-                val packageName = etPackageName.text.toString().trim()
-
-                val finalPackageName = if (packageName.isEmpty()) {
-                    getString(R.string.default_package_name)
-                } else {
-                    packageName
-                }
-
-                // Listener sekarang dipanggil hanya dengan satu argumen
-                listener?.onPackageInput(finalPackageName)
-            }
-            .setNegativeButton(R.string.cancel) { dialog, _ ->
-                dialog.dismiss()
-            }
             .create()
+
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+        btnSubmit.setOnClickListener {
+            val packageName = etPackageName.text.toString().trim()
+
+            val finalPackageName = if (packageName.isEmpty()) {
+                getString(R.string.default_package_name)
+            } else {
+                packageName
+            }
+
+            // Listener sekarang dipanggil hanya dengan satu argumen
+            listener?.onPackageInput(finalPackageName)
+            dialog.dismiss()
+        }
+
+        // Mencegah dialog menutup saat keyboard muncul dan membuat latar belakang transparan
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        return dialog
     }
 
     companion object {

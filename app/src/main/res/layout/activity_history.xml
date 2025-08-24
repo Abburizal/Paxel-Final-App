@@ -106,7 +106,7 @@
             android:id="@+id/tvEmpty"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/no_measurements_found"
+            android:text="@string/"
             android:textAppearance="?attr/textAppearanceTitleMedium"
             android:textColor="@color/text_medium_gray"
             android:textAlignment="center" />

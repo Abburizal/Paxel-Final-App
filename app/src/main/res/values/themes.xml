@@ -1,44 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base Application Theme -->
+<resources>
     <style name="Theme.PaxelARValidator" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Primary brand color -->
         <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
         <item name="colorOnPrimary">@color/on_primary</item>
         <item name="colorPrimaryContainer">@color/primary_container</item>
         <item name="colorOnPrimaryContainer">@color/on_primary_container</item>
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorOnSecondary">@color/white</item>
 
-        <!-- Surface colors -->
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorOnBackground">@color/on_background</item>
         <item name="colorSurface">@color/surface</item>
         <item name="colorOnSurface">@color/on_surface</item>
         <item name="colorSurfaceVariant">@color/surface_variant</item>
         <item name="colorOnSurfaceVariant">@color/on_surface_variant</item>
 
-        <!-- Background colors -->
-        <item name="android:colorBackground">@color/background</item>
-        <item name="colorOnBackground">@color/on_background</item>
-
-        <!-- Error colors -->
         <item name="colorError">@color/error</item>
         <item name="colorOnError">@color/on_error</item>
         <item name="colorErrorContainer">@color/error_container</item>
         <item name="colorOnErrorContainer">@color/on_error_container</item>
 
-        <!-- Outline colors -->
+        <item name="android:statusBarColor">@color/primary_dark</item>
         <item name="colorOutline">@color/outline</item>
         <item name="colorOutlineVariant">@color/outline_variant</item>
 
-        <!-- Status bar -->
-        <item name="android:statusBarColor">@color/primary</item>
-        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+        <item name="android:fontFamily">@font/poppins</item>
 
-        <!-- Navigation bar -->
-        <item name="android:navigationBarColor">@color/surface</item>
-        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
-
-        <!-- Window properties -->
-        <item name="android:windowBackground">@color/background</item>
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
+        <item name="textAppearanceHeadline6">@style/TextAppearance.PaxelAR.TitleMedium</item>
     </style>
-4</resources>
+
+</resources>

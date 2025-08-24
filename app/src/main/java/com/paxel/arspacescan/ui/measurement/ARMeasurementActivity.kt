@@ -79,6 +79,8 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
     private val visualNodes = mutableListOf<Node>()
     private var isArCoreSupported = true
     private var smoothedHeight: Float = 0.0f
+    private lateinit var pixelCopyHandlerThread: HandlerThread
+    private lateinit var pixelCopyHandler: Handler
 
 
     // Price Estimation Variables
@@ -109,7 +111,10 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
         // store extras early
         packageNameExtra = intent.getStringExtra("PACKAGE_NAME")
         declaredSizeExtra = intent.getStringExtra("DECLARED_SIZE")
-
+        // Check storage permissions
+        pixelCopyHandlerThread = HandlerThread("PixelCopyThread")
+        pixelCopyHandlerThread.start()
+        pixelCopyHandler = Handler(pixelCopyHandlerThread.looper)
         checkARCoreSupport()
         if (!isArCoreSupported) {
             Toast.makeText(this, "ARCore tidak didukung di perangkat ini", Toast.LENGTH_LONG).show()
@@ -509,58 +514,37 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
             return
         }
 
-        // Validate AR scene is ready
         val arSceneView = fragment.arSceneView
-        if (arSceneView.arFrame == null) {
-            Toast.makeText(this, "AR belum siap, tunggu sebentar...", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        // Check if camera is tracking
-        val frame = arSceneView.arFrame
-        if (frame?.camera?.trackingState != TrackingState.TRACKING) {
+        if (arSceneView.arFrame == null || arSceneView.arFrame?.camera?.trackingState != TrackingState.TRACKING) {
             Toast.makeText(this, "Tunggu hingga kamera AR tracking dengan baik", Toast.LENGTH_SHORT).show()
             return
         }
 
         try {
-            Log.d("ARMeasurementActivity", "Starting photo capture process...")
+            Log.d("ARMeasurementActivity", "Memulai proses PixelCopy...")
 
-            // Check storage permission for Android 6.0+
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                ContextCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            // Buat Bitmap kosong untuk menampung hasil screenshot
+            val bitmap = Bitmap.createBitmap(arSceneView.width, arSceneView.height, Bitmap.Config.ARGB_8888)
 
-                Log.d("ARMeasurementActivity", "Requesting storage permission...")
-                // Capture bitmap first, then request permission
-                val bitmap = fragment.arSceneView.drawToBitmap()
-
-                // Validate bitmap is not empty
-                if (bitmap.width == 0 || bitmap.height == 0) {
-                    Toast.makeText(this, "Gagal mengambil screenshot AR - layar kosong", Toast.LENGTH_SHORT).show()
-                    return
+            // Gunakan PixelCopy untuk menyalin konten SurfaceView ke Bitmap
+            PixelCopy.request(arSceneView, bitmap, { copyResult ->
+                if (copyResult == PixelCopy.SUCCESS) {
+                    // Jika berhasil, jalankan penyimpanan di thread utama
+                    runOnUiThread {
+                        Log.d("ARMeasurementActivity", "PixelCopy berhasil, menyimpan bitmap...")
+                        saveBitmapToGallery(bitmap)
+                    }
+                } else {
+                    // Jika gagal, tampilkan pesan error
+                    runOnUiThread {
+                        Log.e("ARMeasurementActivity", "PixelCopy gagal dengan kode error: $copyResult")
+                        Toast.makeText(this, "Gagal mengambil screenshot AR: Error $copyResult", Toast.LENGTH_LONG).show()
+                    }
                 }
-
-                Log.d("ARMeasurementActivity", "Bitmap captured: ${bitmap.width}x${bitmap.height}")
-                pendingPhotoBitmap = bitmap
-                ActivityCompat.requestPermissions(this, arrayOf(WRITE_EXTERNAL_STORAGE), STORAGE_PERMISSION_REQUEST_CODE)
-                return
-            }
-
-            // Take screenshot and save directly if permission already granted
-            Log.d("ARMeasurementActivity", "Taking screenshot with existing permissions...")
-            val bitmap = fragment.arSceneView.drawToBitmap()
-
-            // Validate bitmap is not empty
-            if (bitmap.width == 0 || bitmap.height == 0) {
-                Toast.makeText(this, "Gagal mengambil screenshot AR - layar kosong", Toast.LENGTH_SHORT).show()
-                return
-            }
-
-            Log.d("ARMeasurementActivity", "Bitmap captured successfully: ${bitmap.width}x${bitmap.height}")
-            saveBitmapToGallery(bitmap)
+            }, pixelCopyHandler) // Jalankan proses ini di handler yang sudah kita buat
 
         } catch (e: Exception) {
-            Log.e("ARMeasurementActivity", "Error taking photo", e)
+            Log.e("ARMeasurementActivity", "Error saat memanggil takePhoto", e)
             Toast.makeText(this, "Gagal mengambil foto: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
@@ -697,31 +681,7 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
     /**
      * Handle permission request results
      */
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        when (requestCode) {
-            STORAGE_PERMISSION_REQUEST_CODE -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Permission granted, save the pending bitmap
-                    pendingPhotoBitmap?.let { bitmap ->
-                        saveBitmapToGallery(bitmap)
-                        pendingPhotoBitmap = null
-                    } ?: run {
-                        Toast.makeText(this, "Tidak ada foto untuk disimpan", Toast.LENGTH_SHORT).show()
-                    }
-                } else {
-                    // Permission denied
-                    Toast.makeText(this, "Izin penyimpanan diperlukan untuk menyimpan foto", Toast.LENGTH_LONG).show()
-                    pendingPhotoBitmap = null
-                }
-            }
-        }
-    }
 
     private fun addSphere(worldPosition: Vector3) {
         val sphereNode = Node().apply {
@@ -807,6 +767,9 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
     override fun onDestroy() {
         super.onDestroy()
         arFragment?.arSceneView?.destroy()
+
+        pixelCopyHandlerThread.quitSafely()
+
     }
 
 }
