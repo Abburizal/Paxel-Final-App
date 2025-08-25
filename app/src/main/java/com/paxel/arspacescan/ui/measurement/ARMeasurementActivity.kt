@@ -1,5 +1,5 @@
 package com.paxel.arspacescan.ui.measurement
-
+import com.paxel.arspacescan.data.mapper.toMeasurementResult
 import android.Manifest
 import android.content.ContentValues
 import android.content.Intent
@@ -33,10 +33,10 @@ import com.google.ar.core.TrackingState
 import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.FrameTime
 import com.google.ar.sceneform.Scene
-import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.ux.ArFragment
 import com.paxel.arspacescan.R
 import com.paxel.arspacescan.data.model.MeasurementResult
+import com.paxel.arspacescan.data.model.PackageMeasurement
 import com.paxel.arspacescan.ui.common.safeHapticFeedback
 import com.paxel.arspacescan.ui.result.ResultActivity
 import com.paxel.arspacescan.util.PackageSizeValidator
@@ -85,13 +85,12 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
     private var lastToastTime = 0L
 
     // Photo capture state
-    private var pendingPhotoBitmap: Bitmap? = null
+    // private var pendingPhotoBitmap: Bitmap? = null
 
     // Photo capture constants
     companion object {
         private const val CAMERA_PERMISSION_CODE = 100 // Sudah ada
         private const val STORAGE_PERMISSION_REQUEST_CODE = 101 // Tambahkan ini
-        private const val WRITE_EXTERNAL_STORAGE = android.Manifest.permission.WRITE_EXTERNAL_STORAGE
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -270,32 +269,50 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
                                 startAnimation(fadeInAnimation)
                             }
                         }
-
-                        // GANTI updateArScene(state) dengan arSceneManager:
                         arSceneManager.updateScene(state)
-
-                        // Logika UI lainnya tetap di sini
                         btnUndo.isEnabled = state.isUndoEnabled
                         btnTakePhoto.visibility = if (state.step == MeasurementStep.COMPLETED) View.VISIBLE else View.GONE
                         findViewById<MaterialButton>(R.id.btnContinueToResult).visibility = if (state.step == MeasurementStep.COMPLETED) View.VISIBLE else View.GONE
 
-                        // Calculate package size and price when measurement is completed
                         if (state.step == MeasurementStep.COMPLETED) {
                             state.finalResult?.let { result ->
-                                calculatePackageSizeAndPrice(result)
+                                // Always treat as PackageMeasurement and convert
+                                val measurementResult = result.toMeasurementResult()
+                                calculatePackageSizeAndPrice(measurementResult)
                                 updatePriceEstimationUI()
                             }
                         }
                     }
                 }
 
+                // --- PERBAIKAN DITERAPKAN DI SINI ---
                 launch {
-                    viewModel.navigationEvent.collect { result ->
-                        navigateToResult(result)
+                    viewModel.navigationEvent.collect { packageMeasurement ->
+                        // Convert PackageMeasurement to MeasurementResult
+                        val measurementResult = MeasurementResult(
+                            id = packageMeasurement.id,
+                            width = packageMeasurement.width,
+                            height = packageMeasurement.height,
+                            depth = packageMeasurement.depth,
+                            volume = packageMeasurement.volume,
+                            timestamp = packageMeasurement.timestamp,
+                            packageName = packageMeasurement.packageName,
+                            declaredSize = packageMeasurement.declaredSize,
+                            imagePath = packageMeasurement.imagePath,
+                            packageSizeCategory = packageMeasurement.packageSizeCategory,
+                            estimatedPrice = packageMeasurement.estimatedPrice
+                        )
+
+                        val intent = Intent(this@ARMeasurementActivity, ResultActivity::class.java).apply {
+                            putExtra(ResultActivity.EXTRA_PACKAGE_NAME, packageMeasurement.packageName)
+                            putExtra(ResultActivity.EXTRA_DECLARED_SIZE, packageMeasurement.declaredSize)
+                            putExtra(ResultActivity.EXTRA_MEASUREMENT_RESULT, measurementResult)
+                        }
+                        startActivity(intent)
+                        finish()
                     }
                 }
 
-                // --- TAMBAHKAN OBSERVASI WARNING MESSAGE ---
                 launch {
                     viewModel.warningMessage.collect { warningMessage ->
                         if (warningMessage != null) {
@@ -402,12 +419,13 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
         }
 
         try {
+            // Always treat as PackageMeasurement and convert
+            val measurementResult = finalResult.toMeasurementResult()
+
             val intent = Intent(this, ResultActivity::class.java).apply {
-                putExtra(ResultActivity.EXTRA_MEASUREMENT_RESULT, finalResult)
+                putExtra(ResultActivity.EXTRA_MEASUREMENT_RESULT, measurementResult)
                 putExtra(ResultActivity.EXTRA_PACKAGE_NAME, packageNameExtra)
                 putExtra(ResultActivity.EXTRA_DECLARED_SIZE, declaredSizeExtra)
-
-                // Add price estimation data
                 putExtra("ESTIMATED_PRICE", estimatedPrice)
                 putExtra("PACKAGE_SIZE_CATEGORY", packageSizeCategory)
             }
@@ -421,20 +439,6 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
         }
     }
 
-    private fun navigateToResult(result: MeasurementResult) {
-        val intent = Intent(this, ResultActivity::class.java).apply {
-            putExtra(ResultActivity.EXTRA_MEASUREMENT_RESULT, result)
-            putExtra(ResultActivity.EXTRA_PACKAGE_NAME, packageNameExtra)
-            putExtra(ResultActivity.EXTRA_DECLARED_SIZE, declaredSizeExtra)
-
-            // Add price estimation data
-            putExtra("ESTIMATED_PRICE", estimatedPrice)
-            putExtra("PACKAGE_SIZE_CATEGORY", packageSizeCategory)
-        }
-
-        startActivity(intent)
-        finish()
-    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,

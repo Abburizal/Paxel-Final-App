@@ -9,16 +9,16 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.paxel.arspacescan.R
-import com.paxel.arspacescan.data.model.MeasurementResult
+import com.paxel.arspacescan.data.model.PackageMeasurement
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 class MeasurementAdapter(
-    private val onItemClick: (MeasurementResult) -> Unit,
-    private val onItemLongClick: (MeasurementResult) -> Unit,
-    private val onDeleteClick: (MeasurementResult) -> Unit // Callback untuk klik hapus
-) : ListAdapter<MeasurementResult, MeasurementAdapter.MeasurementViewHolder>(MeasurementDiffCallback()) {
+    private val onItemClick: (PackageMeasurement) -> Unit,
+    private val onItemLongClick: (PackageMeasurement) -> Unit,
+    private val onDeleteClick: (PackageMeasurement) -> Unit // Callback untuk klik hapus
+) : ListAdapter<PackageMeasurement, MeasurementAdapter.MeasurementViewHolder>(MeasurementDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MeasurementViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -37,12 +37,12 @@ class MeasurementAdapter(
         private val deleteButton: ImageButton = itemView.findViewById(R.id.btnDelete) // Referensi ke tombol hapus
 
         fun bind(
-            measurement: MeasurementResult,
-            onItemClick: (MeasurementResult) -> Unit,
-            onItemLongClick: (MeasurementResult) -> Unit,
-            onDeleteClick: (MeasurementResult) -> Unit
+            measurement: PackageMeasurement,
+            onItemClick: (PackageMeasurement) -> Unit,
+            onItemLongClick: (PackageMeasurement) -> Unit,
+            onDeleteClick: (PackageMeasurement) -> Unit
         ) {
-            packageNameTextView.text = measurement.packageName ?: "Tanpa Nama"
+            packageNameTextView.text = measurement.packageName.takeIf { it.isNotBlank() } ?: "Tanpa Nama"
 
             val sdf = SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale("id", "ID"))
             timestampTextView.text = sdf.format(Date(measurement.timestamp))
@@ -61,12 +61,12 @@ class MeasurementAdapter(
         }
     }
 
-    class MeasurementDiffCallback : DiffUtil.ItemCallback<MeasurementResult>() {
-        override fun areItemsTheSame(oldItem: MeasurementResult, newItem: MeasurementResult): Boolean {
+    class MeasurementDiffCallback : DiffUtil.ItemCallback<PackageMeasurement>() {
+        override fun areItemsTheSame(oldItem: PackageMeasurement, newItem: PackageMeasurement): Boolean {
             return oldItem.id == newItem.id
         }
 
-        override fun areContentsTheSame(oldItem: MeasurementResult, newItem: MeasurementResult): Boolean {
+        override fun areContentsTheSame(oldItem: PackageMeasurement, newItem: PackageMeasurement): Boolean {
             return oldItem == newItem
         }
     }

@@ -4,10 +4,11 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.ar.sceneform.AnchorNode
+import com.google.ar.sceneform.math.Vector3
 import com.paxel.arspacescan.R
-import com.paxel.arspacescan.data.model.MeasurementResult
-import com.paxel.arspacescan.util.MeasurementCalculator
+import com.paxel.arspacescan.data.model.PackageMeasurement
 import com.paxel.arspacescan.util.AngleValidator
+import com.paxel.arspacescan.util.MeasurementCalculator
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -22,10 +23,9 @@ class ARMeasurementViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ARMeasurementUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val _navigationEvent = MutableSharedFlow<MeasurementResult>()
+    private val _navigationEvent = MutableSharedFlow<PackageMeasurement>()
     val navigationEvent = _navigationEvent.asSharedFlow()
 
-    // --- TAMBAHKAN STATE BARU INI ---
     private val _warningMessage = MutableStateFlow<String?>(null)
     val warningMessage = _warningMessage.asStateFlow()
 
@@ -43,13 +43,13 @@ class ARMeasurementViewModel : ViewModel() {
             }
             MeasurementStep.BASE_POINT_B_ADDED -> {
                 addPoint(anchorNode)
-                defineBaseCorners(context)
+                defineBaseCorners(anchorNode)
             }
             MeasurementStep.BASE_DEFINED -> {
                 defineHeightAndComplete(anchorNode)
             }
-            else -> {
-                // Do nothing in other states like COMPLETED
+            MeasurementStep.COMPLETED -> {
+                // Do nothing in completed state
             }
         }
     }
@@ -63,8 +63,7 @@ class ARMeasurementViewModel : ViewModel() {
         }
     }
 
-    // [FINAL] Logika yang disempurnakan untuk akurasi yang lebih tinggi
-    private fun defineBaseCorners(context: Context) {
+    private fun defineBaseCorners(anchorNode: AnchorNode) {
         val points = _uiState.value.points
         if (points.size < 2) return
 
@@ -81,10 +80,10 @@ class ARMeasurementViewModel : ViewModel() {
         val maxZ = max(p1.z, p2.z)
 
         // 3. Buat 4 sudut kotak yang sempurna secara matematis (ortogonal)
-        val pA = com.google.ar.sceneform.math.Vector3(minX, avgY, minZ)
-        val pB = com.google.ar.sceneform.math.Vector3(minX, avgY, maxZ)
-        val pC = com.google.ar.sceneform.math.Vector3(maxX, avgY, maxZ)
-        val pD = com.google.ar.sceneform.math.Vector3(maxX, avgY, minZ)
+        val pA = Vector3(minX, avgY, minZ)
+        val pB = Vector3(minX, avgY, maxZ)
+        val pC = Vector3(maxX, avgY, maxZ)
+        val pD = Vector3(maxX, avgY, minZ)
 
         // Urutan sudut disesuaikan agar kalkulasi di MeasurementCalculator tetap benar
         val corners = listOf(pA, pB, pC, pD).map { position ->
@@ -99,10 +98,8 @@ class ARMeasurementViewModel : ViewModel() {
             )
         }
 
-        // --- PANGGIL VALIDASI SUDUT DI SINI ---
         validateBaseShape(listOf(pA, pB, pC, pD))
     }
-
 
     private fun defineHeightAndComplete(heightPoint: AnchorNode) {
         val baseCorners = _uiState.value.corners
@@ -114,7 +111,7 @@ class ARMeasurementViewModel : ViewModel() {
         val topCorners = baseCorners.map { baseNode ->
             val pos = baseNode.worldPosition
             AnchorNode().apply {
-                worldPosition = com.google.ar.sceneform.math.Vector3(pos.x, pos.y + height, pos.z)
+                worldPosition = Vector3(pos.x, pos.y + height, pos.z)
             }
         }
 
@@ -124,16 +121,21 @@ class ARMeasurementViewModel : ViewModel() {
         if (result != null) {
             _uiState.update {
                 it.copy(
-                    corners = allCorners,
-                    step = MeasurementStep.COMPLETED,
-                    instructionTextId = R.string.instruction_completed,
-                    isUndoEnabled = false,
-                    finalResult = result
+                    finalResult = PackageMeasurement(
+                        packageName = "",
+                        declaredSize = "",
+                        width = result.width,
+                        height = result.height,
+                        depth = result.depth, // Use correct field name
+                        volume = result.volume,
+                        timestamp = System.currentTimeMillis()
+                    ),
+                    step = MeasurementStep.COMPLETED, // Use correct enum value
+                    instructionTextId = R.string.instruction_step_3 // Use existing resource
                 )
             }
         }
     }
-
 
     fun undoLastPoint() {
         val currentState = _uiState.value
@@ -152,16 +154,15 @@ class ARMeasurementViewModel : ViewModel() {
                 )
             }
         }
-        clearWarningMessage() // Juga saat undo
+        clearWarningMessage()
     }
 
     fun reset() {
         _uiState.value = ARMeasurementUiState()
-        clearWarningMessage() // Pastikan warning hilang saat reset
+        clearWarningMessage()
     }
 
-    // --- TAMBAHKAN FUNGSI BARU INI ---
-    private fun validateBaseShape(corners: List<com.google.ar.sceneform.math.Vector3>) {
+    private fun validateBaseShape(corners: List<Vector3>) {
         val validationResult = AngleValidator.validateBaseAngles(corners)
         if (!validationResult.isValid) {
             val badAngles = validationResult.problematicAngles.joinToString("°, ")
@@ -169,7 +170,6 @@ class ARMeasurementViewModel : ViewModel() {
         }
     }
 
-    // --- TAMBAHKAN FUNGSI INI UNTUK MENGHILANGKAN PESAN ---
     fun clearWarningMessage() {
         _warningMessage.value = null
     }
@@ -193,5 +193,5 @@ data class ARMeasurementUiState(
     val points: List<AnchorNode> = emptyList(),
     val corners: List<AnchorNode> = emptyList(),
     val isUndoEnabled: Boolean = false,
-    val finalResult: MeasurementResult? = null
+    val finalResult: PackageMeasurement? = null
 )
