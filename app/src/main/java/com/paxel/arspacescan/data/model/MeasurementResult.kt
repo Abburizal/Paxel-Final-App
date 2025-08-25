@@ -12,5 +12,6 @@ data class MeasurementResult(
     val volume: Float,          // volume dalam m³
     val timestamp: Long,        // waktu pengukuran
     val packageName: String? = null,    // nama paket
-    val declaredSize: String? = null    // ukuran yang dinyatakan
+    val declaredSize: String? = null,   // ukuran yang dinyatakan
+    val imagePath: String? = null       // URI/path ke file gambar dokumentasi
 ) : Parcelable

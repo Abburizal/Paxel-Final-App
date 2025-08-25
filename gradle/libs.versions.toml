@@ -1,77 +1,63 @@
 [versions]
-# Plugin
-agp = "8.5.2"              # AGP terbaru yang stabil
-kotlin = "2.0.20"           # Kotlin stabil terbaru
-ksp = "2.0.20-1.0.24"       # KSP kompatibel dengan Kotlin 2.0.20
-room = "2.7.0"              # Room plugin version
-
-# Library utama
-coreKtx = "1.15.0"
+agp = "8.5.2"
+kotlin = "1.9.25"
+coreKtx = "1.13.1"
+junit = "4.13.2"
+junitVersion = "1.1.5"
+espressoCore = "3.6.1"
 appcompat = "1.7.0"
 material = "1.12.0"
-constraintlayout = "2.2.0"
+constraintlayout = "2.1.4"
 lifecycle = "2.8.4"
-activityKtx = "1.9.2"
-roomLib = "2.7.0"
-coroutines = "1.9.0"
-cameraX = "1.4.0"
-arCore = "1.44.0"           # Use stable ARCore version
-sceneform = "1.23.0"        # Keep Sceneform 1.23.0 as latest stable
-
-# Testing
-junit = "4.13.2"
-junitExt = "1.2.1"
-espressoCore = "3.6.1"
-coroutinesTest = "1.9.0"
-androidxTestCore = "1.6.1"
-androidxJunitKtx = "1.2.1"
-activity = "1.10.1"
+activity = "1.9.1"
+fragment = "1.8.2"
+navigation = "2.7.7"
+room = "2.6.1"
+coroutines = "1.8.1"
+arcore = "1.44.0"
+sceneform = "1.17.1"
+gson = "2.11.0"
+mockito = "5.12.0"
+mockitoKotlin = "5.4.0"
+archTesting = "2.2.0"
+robolectric = "4.13"
+testRunner = "1.6.1"
+ksp = "1.9.25-1.0.20"
+lottie = "6.1.0"
 
 [libraries]
-# AndroidX Core, Appcompat, Lifecycle
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
-androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
-androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
-androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycle" }
-androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activityKtx" }
-
-# UI
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
-
-# Coroutines
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
+androidx-lifecycle-livedata = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycle" }
+androidx-activity = { group = "androidx.activity", name = "activity-ktx", version.ref = "activity" }
+androidx-fragment = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragment" }
+androidx-navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigation" }
+androidx-navigation-ui = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigation" }
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
-
-# Room
-androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "roomLib" }
-androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomLib" }
-androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "roomLib" }
-
-# ARCore & Sceneform
-google-ar-core = { group = "com.google.ar", name = "core", version.ref = "arCore" }
-sceneform = { group = "com.gorisse.thomas.sceneform", name = "sceneform", version.ref = "sceneform" }
-
-# CameraX
-androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "cameraX" }
-androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "cameraX" }
-androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "cameraX" }
-androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "cameraX" }
-
-# Testing
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitExt" }
-androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "roomLib" }
-kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
-androidx-test-core-ktx = { group = "androidx.test", name = "core-ktx", version.ref = "androidxTestCore" }
-androidx-test-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxJunitKtx" }
-androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
+arcore = { group = "com.google.ar", name = "core", version.ref = "arcore" }
+sceneform-ux = { group = "com.google.ar.sceneform.ux", name = "sceneform-ux", version.ref = "sceneform" }
+sceneform-core = { group = "com.google.ar.sceneform", name = "core", version.ref = "sceneform" }
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
+mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
+androidx-arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "archTesting" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "testRunner" }
+lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-kotlin-parcelize = { id = "kotlin-parcelize", version.ref = "kotlin" }
-androidx-room = { id = "androidx.room", version.ref = "room" }

@@ -3,8 +3,9 @@ package com.paxel.arspacescan.ui.result
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paxel.arspacescan.data.model.MeasurementResult
-import com.paxel.arspacescan.data.model.PackageMeasurement
 import com.paxel.arspacescan.data.repository.MeasurementRepository
+import com.paxel.arspacescan.data.mapper.*
+import com.paxel.arspacescan.data.model.PackageMeasurement
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -36,6 +37,10 @@ class MeasurementViewModel(private val repository: MeasurementRepository) : View
         }
     }
 
+    fun getAllPackageMeasurements(): Flow<List<PackageMeasurement>> {
+        return repository.getAllMeasurements()
+    }
+
     fun deleteMeasurementById(id: Long) {
         viewModelScope.launch {
             repository.deleteMeasurementById(id)
@@ -57,7 +62,7 @@ class MeasurementViewModel(private val repository: MeasurementRepository) : View
 
     fun exportToCSV() {
         viewModelScope.launch {
-            val csvHeader = "ID,Package Name,Declared Size,Width(cm),Height(cm),Depth(cm),Volume(cm³),Timestamp,Validated\n"
+            val csvHeader = "ID,Package Name,Declared Size,Width(cm),Height(cm),Depth(cm),Volume(cm³),Timestamp,Has Photo,Validated\n"
             val csvContent = StringBuilder(csvHeader)
             val measurementList = repository.getAllMeasurements().first()
 
@@ -65,43 +70,15 @@ class MeasurementViewModel(private val repository: MeasurementRepository) : View
                 csvContent.append("${measurement.id},")
                 csvContent.append("\"${measurement.packageName}\",")
                 csvContent.append("\"${measurement.declaredSize}\",")
-                csvContent.append("${measurement.measuredWidth * 100},")
-                csvContent.append("${measurement.measuredHeight * 100},")
-                csvContent.append("${measurement.measuredDepth * 100},")
-                csvContent.append("${measurement.measuredVolume * 1_000_000},")
+                csvContent.append("${String.format("%.2f", measurement.width * 100)},")
+                csvContent.append("${String.format("%.2f", measurement.height * 100)},")
+                csvContent.append("${String.format("%.2f", measurement.depth * 100)},")
+                csvContent.append("${String.format("%.2f", measurement.volume * 1_000_000)},")
                 csvContent.append("${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(java.util.Date(measurement.timestamp))},")
+                csvContent.append("${if (measurement.imagePath != null) "Yes" else "No"},")
                 csvContent.append("${measurement.isValidated}\n")
             }
             _csvExportResult.emit(csvContent.toString())
         }
-    }
-
-    // --- Extension Functions untuk Konversi Data ---
-
-    private fun PackageMeasurement.toMeasurementResult(): MeasurementResult {
-        return MeasurementResult(
-            id = this.id,
-            width = this.measuredWidth,
-            height = this.measuredHeight,
-            depth = this.measuredDepth,
-            volume = this.measuredVolume,
-            timestamp = this.timestamp,
-            packageName = this.packageName,
-            declaredSize = this.declaredSize
-        )
-    }
-
-    private fun MeasurementResult.toPackageMeasurement(): PackageMeasurement {
-        return PackageMeasurement(
-            id = this.id,
-            packageName = this.packageName ?: "",
-            declaredSize = this.declaredSize ?: "",
-            measuredWidth = this.width,
-            measuredHeight = this.height,
-            measuredDepth = this.depth,
-            measuredVolume = this.volume,
-            timestamp = this.timestamp,
-            isValidated = true
-        )
     }
 }

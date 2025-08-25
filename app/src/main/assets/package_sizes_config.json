@@ -1,0 +1,23 @@
+{
+  "size_categories": [
+    {
+      "name": "Kecil",
+      "max_volume_cm3": 1000,
+      "price": 10000
+    },
+    {
+      "name": "Sedang",
+      "max_volume_cm3": 5000,
+      "price": 20000
+    },
+    {
+      "name": "Besar",
+      "max_volume_cm3": -1,
+      "price": 30000
+    }
+  ],
+  "default_category": {
+    "name": "Besar",
+    "price": 30000
+  }
+}

@@ -1,16 +1,23 @@
 package com.paxel.arspacescan.ui.result
 
+import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import com.paxel.arspacescan.R
 import com.paxel.arspacescan.data.local.AppDatabase
@@ -19,7 +26,10 @@ import com.paxel.arspacescan.data.repository.MeasurementRepository
 import com.paxel.arspacescan.databinding.ActivityResultBinding
 import com.paxel.arspacescan.ui.common.safeHapticFeedback
 import com.paxel.arspacescan.ui.main.MainActivity
+import com.paxel.arspacescan.util.PackageSizeValidator
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.IOException
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -30,6 +40,27 @@ class ResultActivity : AppCompatActivity() {
     private lateinit var binding: ActivityResultBinding
     private var currentMeasurementResult: MeasurementResult? = null
     private var isSaved = false
+    private var currentPhotoPath: String? = null
+
+    // ActivityResultLauncher untuk menangani hasil dari kamera
+    private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            currentPhotoPath?.let { path ->
+                // Tampilkan gambar yang baru diambil
+                val imageFile = File(path)
+                if (imageFile.exists()) {
+                    binding.ivPhotoPreview.setImageURI(Uri.fromFile(imageFile))
+                    binding.ivPhotoPreview.visibility = View.VISIBLE
+                    // Update currentMeasurementResult dengan path foto baru
+                    currentMeasurementResult = currentMeasurementResult?.copy(imagePath = path)
+                    // Set isSaved ke false agar tombol simpan aktif kembali
+                    isSaved = false
+                    updateButtonStates()
+                    Toast.makeText(this, getString(R.string.photo_saved), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     // [PERBAIKAN UTAMA] Inisialisasi ViewModel dengan ViewModelFactory.
     // Ini adalah perbaikan untuk error "No value passed for parameter 'repository'".
@@ -102,10 +133,11 @@ class ResultActivity : AppCompatActivity() {
         lifecycleScope.launch {
             viewModel.getMeasurementById(measurementId).collect { resultFromDb ->
                 if (resultFromDb != null) {
+                    // resultFromDb is already a MeasurementResult, no need to convert
                     currentMeasurementResult = resultFromDb
                     isSaved = true // Data dari DB sudah pasti tersimpan.
                     displayMeasurementResult(
-                        resultFromDb,
+                        currentMeasurementResult!!, // Pasti non-null di sini
                         resultFromDb.packageName,
                         resultFromDb.declaredSize
                     )
@@ -141,15 +173,25 @@ class ResultActivity : AppCompatActivity() {
         binding.tvDepth.text = "${decimalFormat.format(depthCm)} cm"
         binding.tvVolume.text = "${decimalFormat.format(volumeCm3)} cm³"
 
-        // Logika estimasi harga dan kategori
-        val (category, price) = when {
-            volumeCm3 <= 1000 -> "Kecil" to 10000
-            volumeCm3 <= 5000 -> "Sedang" to 20000
-            else -> "Besar" to 30000
+        val validationResult = PackageSizeValidator.validate(this, result)
+
+        // Tampilkan hasilnya menggunakan helper format
+        binding.tvEstimatedPrice.text =
+            PackageSizeValidator.formatPrice(validationResult.estimatedPrice)
+        binding.tvSizeCategory.text = validationResult.category
+
+        // Tampilkan foto jika ada
+        result.imagePath?.let { path ->
+            val imageFile = File(path)
+            if (imageFile.exists()) {
+                currentPhotoPath = path
+                binding.ivPhotoPreview.setImageURI(Uri.fromFile(imageFile))
+                binding.ivPhotoPreview.visibility = View.VISIBLE
+            }
+        } ?: run {
+            // Jika tidak ada foto, sembunyikan ImageView
+            binding.ivPhotoPreview.visibility = View.GONE
         }
-        val priceFormat = DecimalFormat("Rp#,###")
-        binding.tvEstimatedPrice.text = priceFormat.format(price)
-        binding.tvSizeCategory.text = category
     }
 
     private fun setupButtons() {
@@ -171,6 +213,10 @@ class ResultActivity : AppCompatActivity() {
             } else {
                 startNewMeasurement()
             }
+        }
+        binding.btnAddPhoto.setOnClickListener {
+            it.safeHapticFeedback()
+            dispatchTakePictureIntent()
         }
     }
 
@@ -199,17 +245,25 @@ class ResultActivity : AppCompatActivity() {
             Toast.makeText(this, "Hasil sudah tersimpan", Toast.LENGTH_SHORT).show()
             return
         }
-        currentMeasurementResult?.let {
-            val packageName = intent.getStringExtra(EXTRA_PACKAGE_NAME) ?: "Paket"
-            val declaredSize = intent.getStringExtra(EXTRA_DECLARED_SIZE) ?: "N/A"
-            val resultToSave = it.copy(packageName = packageName, declaredSize = declaredSize)
 
+        // 1. Ambil data mentah dari intent (nama & ukuran deklarasi)
+        val packageName = intent.getStringExtra(EXTRA_PACKAGE_NAME) ?: "Paket"
+        val declaredSize = intent.getStringExtra(EXTRA_DECLARED_SIZE) ?: "N/A"
+
+        // 2. Update currentMeasurementResult with package info and save directly
+        val resultToSave = currentMeasurementResult?.copy(
+            packageName = packageName,
+            declaredSize = declaredSize
+        )
+
+        if (resultToSave != null) {
+            // 3. Simpan ke database (viewModel.saveMeasurement expects MeasurementResult)
             viewModel.saveMeasurement(resultToSave)
             isSaved = true
             Toast.makeText(this, "Pengukuran berhasil disimpan", Toast.LENGTH_SHORT).show()
 
             updateButtonStates()
-            invalidateOptionsMenu() // Perbarui menu untuk menampilkan tombol hapus.
+            invalidateOptionsMenu()
         }
     }
 
@@ -242,6 +296,44 @@ class ResultActivity : AppCompatActivity() {
     private fun showError(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
         Log.e("ResultActivity", message)
+    }
+
+    private fun dispatchTakePictureIntent() {
+        // Buat intent untuk membuka kamera
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
+            // Pastikan ada aplikasi kamera yang dapat menangani intent ini
+            takePictureIntent.resolveActivity(packageManager)?.also {
+                // Buat file untuk menyimpan foto
+                createImageFile().also { imageFile ->
+                    // Dapatkan URI untuk file menggunakan FileProvider
+                    val photoURI: Uri = FileProvider.getUriForFile(
+                        this,
+                        "${packageName}.fileprovider",
+                        imageFile
+                    )
+                    currentPhotoPath = imageFile.absolutePath // Simpan path foto saat ini
+                    // Kirim URI ke kamera melalui intent
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                    // Mulai activity kamera
+                    takePictureLauncher.launch(takePictureIntent)
+                }
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun createImageFile(): File {
+        // Buat nama file unik untuk foto
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile(
+            "JPEG_${timeStamp}_", /* prefix */
+            ".jpg",         /* suffix */
+            storageDir      /* directory */
+        ).apply {
+            // Simpan path file ke dalam variabel
+            currentPhotoPath = absolutePath
+        }
     }
 
     // --- Menu Logic ---

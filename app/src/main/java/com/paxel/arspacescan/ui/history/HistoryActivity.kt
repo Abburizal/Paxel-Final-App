@@ -24,10 +24,12 @@ import com.google.android.material.textfield.TextInputEditText
 import com.paxel.arspacescan.R
 import com.paxel.arspacescan.data.local.AppDatabase
 import com.paxel.arspacescan.data.model.MeasurementResult
+import com.paxel.arspacescan.data.model.PackageMeasurement
 import com.paxel.arspacescan.data.repository.MeasurementRepository
 import com.paxel.arspacescan.ui.result.MeasurementViewModel
 import com.paxel.arspacescan.ui.result.MeasurementViewModelFactory
 import com.paxel.arspacescan.ui.result.ResultActivity
+import com.paxel.arspacescan.util.CsvExporter
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -49,6 +51,7 @@ class HistoryActivity : AppCompatActivity() {
     }
 
     private var allMeasurements = listOf<MeasurementResult>()
+    private var measurementList: List<PackageMeasurement> = emptyList() // Store PackageMeasurement data for export
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -113,11 +116,19 @@ class HistoryActivity : AppCompatActivity() {
             }
         }
 
+        // Observe PackageMeasurement data for CSV export
         lifecycleScope.launch {
-            measurementViewModel.csvExportResult.collect { csvContent ->
-                saveCSVFile(csvContent)
+            measurementViewModel.getAllPackageMeasurements().collect { packageMeasurements ->
+                measurementList = packageMeasurements
             }
         }
+
+        // Remove the old CSV export observer as we'll use CsvExporter directly
+        // lifecycleScope.launch {
+        //     measurementViewModel.csvExportResult.collect { csvContent ->
+        //         saveCSVFile(csvContent)
+        //     }
+        // }
     }
 
     private fun filterMeasurements(query: String) {
@@ -174,7 +185,6 @@ class HistoryActivity : AppCompatActivity() {
     // [FINAL] Logika SearchView dihapus total dari sini.
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_history, menu)
-        menu?.findItem(R.id.action_search)?.isVisible = false
         return true
     }
 
@@ -184,8 +194,8 @@ class HistoryActivity : AppCompatActivity() {
                 finish()
                 true
             }
-            R.id.action_export -> {
-                measurementViewModel.exportToCSV()
+            R.id.action_export_csv -> {
+                exportToCSV()
                 true
             }
             R.id.action_delete_all -> {
@@ -196,30 +206,41 @@ class HistoryActivity : AppCompatActivity() {
         }
     }
 
+    private fun exportToCSV() {
+        // Panggil CsvExporter dengan daftar yang sudah kita simpan
+        CsvExporter.exportMeasurements(this, measurementList)
+    }
+
     private fun saveCSVFile(content: String) {
+        // Hide loading state
+        progressBar.visibility = View.GONE
+
         val filename = "paxel_measurements_${System.currentTimeMillis()}.csv"
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val values = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
-                put(MediaStore.MediaColumns.MIME_TYPE, "text/csv")
-                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-            }
-            contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)?.let { uri ->
-                contentResolver.openOutputStream(uri)?.use { outputStream ->
-                    outputStream.write(content.toByteArray())
-                    Toast.makeText(this, "Data diekspor ke folder Downloads", Toast.LENGTH_LONG).show()
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val values = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                    put(MediaStore.MediaColumns.MIME_TYPE, "text/csv")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
                 }
-            }
-        } else {
-            @Suppress("DEPRECATION")
-            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            val file = File(downloadsDir, filename)
-            try {
+                contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)?.let { uri ->
+                    contentResolver.openOutputStream(uri)?.use { outputStream ->
+                        outputStream.write(content.toByteArray())
+                        Toast.makeText(this, getString(R.string.export_success), Toast.LENGTH_LONG).show()
+                    }
+                } ?: run {
+                    Toast.makeText(this, getString(R.string.export_failed), Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                @Suppress("DEPRECATION")
+                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val file = File(downloadsDir, filename)
                 FileOutputStream(file).use { it.write(content.toByteArray()) }
-                Toast.makeText(this, "Data diekspor ke ${file.absolutePath}", Toast.LENGTH_LONG).show()
-            } catch (e: Exception) {
-                Toast.makeText(this, "Gagal menyimpan file: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.export_success), Toast.LENGTH_LONG).show()
             }
+        } catch (e: Exception) {
+            Toast.makeText(this, getString(R.string.export_failed), Toast.LENGTH_SHORT).show()
         }
     }
 

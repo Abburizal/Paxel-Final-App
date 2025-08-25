@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Paxel AR SpaceScan"
+rootProject.name = "Paxel AR Validator"
 include(":app")

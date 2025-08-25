@@ -97,6 +97,21 @@
     <string name="ar_measurement_icon">Ikon pengukuran AR</string>
     <string name="price_estimation_icon">Ikon estimasi harga</string>
     <string name="history_tracking_icon">Ikon pelacakan riwayat</string>
+    <string name="photo_preview">Pratinjau foto dokumentasi</string>
+
+    <!-- Photo Documentation -->
+    <string name="add_photo">Tambah Foto</string>
+    <string name="photo_documentation">Dokumentasi Foto</string>
+    <string name="take_photo">Ambil Foto</string>
+    <string name="photo_saved">Foto berhasil disimpan</string>
+    <string name="no_photo">Tidak ada foto</string>
+
+    <!-- CSV Export -->
+    <string name="action_export_csv">Ekspor ke CSV</string>
+    <string name="export_success">Data berhasil diekspor ke folder Downloads</string>
+    <string name="export_failed">Gagal mengekspor data</string>
+    <string name="no_data_to_export">Tidak ada data untuk diekspor</string>
+    <string name="delete_all_history">Hapus Semua Riwayat</string>
 
     <!-- Result Activity Strings -->
     <string name="package_name_loading">Nama Paket: Loading...</string>

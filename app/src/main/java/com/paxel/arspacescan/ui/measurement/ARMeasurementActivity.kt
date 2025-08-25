@@ -1,4 +1,5 @@
 package com.paxel.arspacescan.ui.measurement
+
 import android.Manifest
 import android.content.ContentValues
 import android.content.Intent
@@ -13,12 +14,10 @@ import android.util.Log
 import android.view.PixelCopy
 import android.view.View
 import android.view.animation.AnimationUtils
-import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.drawToBitmap
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
@@ -28,9 +27,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
-import com.google.ar.core.Config
 import com.google.ar.core.Plane
-import com.google.ar.core.Session
 import com.google.ar.core.TrackingState
 import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.FrameTime
@@ -44,12 +41,10 @@ import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.ShapeFactory
 import com.google.ar.sceneform.ux.ArFragment
 import com.paxel.arspacescan.R
-import com.paxel.arspacescan.data.local.AppDatabase
 import com.paxel.arspacescan.data.model.MeasurementResult
-import com.paxel.arspacescan.data.repository.MeasurementRepository
 import com.paxel.arspacescan.ui.common.safeHapticFeedback
 import com.paxel.arspacescan.ui.result.ResultActivity
-import com.paxel.arspacescan.util.MeasurementCalculator
+import com.paxel.arspacescan.util.PackageSizeValidator
 import kotlinx.coroutines.launch
 import kotlin.math.max
 
@@ -59,10 +54,8 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 if (modelClass.isAssignableFrom(ARMeasurementViewModel::class.java)) {
-                    val dao = AppDatabase.getDatabase(applicationContext).measurementDao()
-                    val repository = MeasurementRepository(dao)
                     @Suppress("UNCHECKED_CAST")
-                    return ARMeasurementViewModel(repository) as T
+                    return ARMeasurementViewModel() as T
                 }
                 throw IllegalArgumentException("Unknown ViewModel class")
             }
@@ -214,7 +207,7 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
                     fragment.view?.safeHapticFeedback()
                     val anchor = hitResult.createAnchor()
                     val anchorNode = AnchorNode(anchor).apply {
-                        parent = fragment.arSceneView.scene
+                        setParent(fragment.arSceneView.scene)
                     }
                     if (anchorNode.anchor == null) {
                         Log.e("ARMeasurementActivity", "Anchor gagal dibuat.")
@@ -315,7 +308,9 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
 
     private fun updateArScene(state: ARMeasurementUiState) {
         // remove previous visuals
-        visualNodes.forEach { it.parent = null }
+        visualNodes.forEach {
+            it.setParent(null)
+        }
         visualNodes.clear()
 
         // show/hide take photo button
@@ -362,7 +357,7 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
         if (isTracking && currentState.step == MeasurementStep.BASE_DEFINED && currentState.corners.isNotEmpty()) {
             // clear previous preview edges
             visualNodes.filter { it.name == "wireframe_edge_preview" }
-                .forEach { it.parent = null }
+                .forEach { it.setParent(null) }
             visualNodes.removeAll { it.name == "wireframe_edge_preview" }
 
             val screenCenterX = fragment.arSceneView.width / 2f
@@ -386,7 +381,7 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
             }
         } else {
             visualNodes.filter { it.name == "wireframe_edge_preview" }
-                .forEach { it.parent = null }
+                .forEach { it.setParent(null) }
             visualNodes.removeAll { it.name == "wireframe_edge_preview" }
         }
     }
@@ -396,45 +391,24 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
      */
     private fun calculatePackageSizeAndPrice(result: MeasurementResult) {
         try {
-            // Convert dimensions from meters to centimeters
-            val widthCm = result.width * 100
-            val heightCm = result.height * 100
-            val depthCm = result.depth * 100
-
-            // Calculate volume in cubic centimeters
-            val volumeCm3 = widthCm * heightCm * depthCm
-
-            // Determine package size category and price
-            when {
-                volumeCm3 <= 1000 -> {
-                    packageSizeCategory = "Kecil"
-                    estimatedPrice = 10000 // Rp 10.000
-                }
-                volumeCm3 <= 5000 -> {
-                    packageSizeCategory = "Sedang"
-                    estimatedPrice = 20000 // Rp 20.000
-                }
-                else -> {
-                    packageSizeCategory = "Besar"
-                    estimatedPrice = 30000 // Rp 30.000
-                }
-            }
-
-            Log.d("ARMeasurementActivity", "Package category: $packageSizeCategory, Volume: ${String.format("%.1f", volumeCm3)} cm³, Price: Rp$estimatedPrice")
+            // Tambahkan 'this' sebagai context
+            val validation = PackageSizeValidator.validate(this, result)
+            packageSizeCategory = validation.category
+            estimatedPrice = validation.estimatedPrice
+            Log.d("ARMeasurementActivity", "Validation result: Category=${validation.category}, Price=Rp${validation.estimatedPrice}")
         } catch (e: Exception) {
-            Log.e("ARMeasurementActivity", "Error calculating package size and price", e)
+            Log.e("ARMeasurementActivity", "Error validating package size", e)
             packageSizeCategory = "Tidak diketahui"
             estimatedPrice = 0
         }
     }
-
     /**
      * Updates the price estimation UI with calculated values
      */
     private fun updatePriceEstimationUI() {
         try {
             val priceText = if (estimatedPrice > 0) {
-                "Estimasi Harga: Rp${String.format("%,d", estimatedPrice)} ($packageSizeCategory)"
+                "Estimasi Harga: ${PackageSizeValidator.formatPrice(estimatedPrice)} ($packageSizeCategory)"
             } else {
                 "Estimasi Harga: Tidak tersedia"
             }
@@ -722,7 +696,7 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
         val sphereNode = Node().apply {
             renderable = sphereRenderable
             localPosition = worldPosition
-            parent = arFragment?.arSceneView?.scene
+            setParent(arFragment?.arSceneView?.scene)
         }
         visualNodes.add(sphereNode)
     }
@@ -779,7 +753,7 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
             val rotation = Quaternion.lookRotation(direction.normalized(), Vector3.up())
             localRotation = rotation
 
-            parent = arFragment?.arSceneView?.scene
+            setParent(arFragment?.arSceneView?.scene)
 
             if (isPreview) {
                 name = "wireframe_edge_preview"

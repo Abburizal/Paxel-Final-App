@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Path for photos taken by the camera -->
+    <external-files-path
+        name="my_images"
+        path="Pictures" />
+</paths>
+
