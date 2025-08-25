@@ -19,7 +19,10 @@ fun MeasurementResult.toPackageMeasurement(): PackageMeasurement {
         volume = this.volume,
         timestamp = this.timestamp,
         isValidated = false,
-        imagePath = this.imagePath
+        imagePath = this.imagePath,
+        // --- TAMBAHKAN MAPPING UNTUK FIELD BARU ---
+        packageSizeCategory = this.packageSizeCategory,
+        estimatedPrice = this.estimatedPrice
     )
 }
 
@@ -33,6 +36,9 @@ fun PackageMeasurement.toMeasurementResult(): MeasurementResult {
         timestamp = this.timestamp,
         packageName = this.packageName,
         declaredSize = this.declaredSize,
-        imagePath = this.imagePath
+        imagePath = this.imagePath,
+        // --- TAMBAHKAN MAPPING UNTUK FIELD BARU ---
+        packageSizeCategory = this.packageSizeCategory,
+        estimatedPrice = this.estimatedPrice
     )
 }

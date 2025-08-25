@@ -16,5 +16,9 @@ data class PackageMeasurement(
     val volume: Float,          // volume dalam m³
     val timestamp: Long,        // waktu pengukuran
     val isValidated: Boolean = false,
-    val imagePath: String? = null // Menyimpan URI/path ke file gambar dokumentasi
+    val imagePath: String? = null, // Menyimpan URI/path ke file gambar dokumentasi
+
+    // --- TAMBAHKAN DUA KOLOM INI ---
+    val packageSizeCategory: String = "Tidak Diketahui",
+    val estimatedPrice: Int = 0
 )

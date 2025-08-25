@@ -7,6 +7,7 @@ import com.google.ar.sceneform.AnchorNode
 import com.paxel.arspacescan.R
 import com.paxel.arspacescan.data.model.MeasurementResult
 import com.paxel.arspacescan.util.MeasurementCalculator
+import com.paxel.arspacescan.util.AngleValidator
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -23,6 +24,10 @@ class ARMeasurementViewModel : ViewModel() {
 
     private val _navigationEvent = MutableSharedFlow<MeasurementResult>()
     val navigationEvent = _navigationEvent.asSharedFlow()
+
+    // --- TAMBAHKAN STATE BARU INI ---
+    private val _warningMessage = MutableStateFlow<String?>(null)
+    val warningMessage = _warningMessage.asStateFlow()
 
     fun handleArTap(anchorNode: AnchorNode, context: Context) {
         val currentState = _uiState.value
@@ -93,6 +98,9 @@ class ARMeasurementViewModel : ViewModel() {
                 instructionTextId = R.string.instruction_step_3
             )
         }
+
+        // --- PANGGIL VALIDASI SUDUT DI SINI ---
+        validateBaseShape(listOf(pA, pB, pC, pD))
     }
 
 
@@ -144,10 +152,26 @@ class ARMeasurementViewModel : ViewModel() {
                 )
             }
         }
+        clearWarningMessage() // Juga saat undo
     }
 
     fun reset() {
         _uiState.value = ARMeasurementUiState()
+        clearWarningMessage() // Pastikan warning hilang saat reset
+    }
+
+    // --- TAMBAHKAN FUNGSI BARU INI ---
+    private fun validateBaseShape(corners: List<com.google.ar.sceneform.math.Vector3>) {
+        val validationResult = AngleValidator.validateBaseAngles(corners)
+        if (!validationResult.isValid) {
+            val badAngles = validationResult.problematicAngles.joinToString("°, ")
+            _warningMessage.value = "Perhatian: Sudut alas tidak presisi (sekitar ${badAngles}°). Hasil mungkin kurang akurat."
+        }
+    }
+
+    // --- TAMBAHKAN FUNGSI INI UNTUK MENGHILANGKAN PESAN ---
+    fun clearWarningMessage() {
+        _warningMessage.value = null
     }
 
     fun completeMeasurement() {

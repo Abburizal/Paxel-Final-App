@@ -16,10 +16,10 @@ import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.TextView
 import android.widget.Toast
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -27,18 +27,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.ar.core.Plane
 import com.google.ar.core.TrackingState
 import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.FrameTime
-import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.Scene
-import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.math.Vector3
-import com.google.ar.sceneform.rendering.Color
-import com.google.ar.sceneform.rendering.MaterialFactory
-import com.google.ar.sceneform.rendering.ModelRenderable
-import com.google.ar.sceneform.rendering.ShapeFactory
 import com.google.ar.sceneform.ux.ArFragment
 import com.paxel.arspacescan.R
 import com.paxel.arspacescan.data.model.MeasurementResult
@@ -67,13 +62,14 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
     private lateinit var cvTrackingHelp: MaterialCardView
     private lateinit var btnUndo: MaterialButton
     private lateinit var btnReset: MaterialButton
-    private var sphereRenderable: ModelRenderable? = null
-    private var lineRenderable: ModelRenderable? = null
-    private val visualNodes = mutableListOf<Node>()
+    private lateinit var tvWarning: TextView  // Add warning TextView property
     private var isArCoreSupported = true
     private var smoothedHeight: Float = 0.0f
     private lateinit var pixelCopyHandlerThread: HandlerThread
     private lateinit var pixelCopyHandler: Handler
+
+    // TAMBAHKAN properti untuk ARSceneManager
+    private lateinit var arSceneManager: ARSceneManager
 
 
     // Price Estimation Variables
@@ -117,7 +113,7 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
         }
 
         setupUI()
-        createRenderables()
+        // HAPUS pemanggilan createRenderables() karena sudah di-handle ARSceneManager
         setupAR()
         observeViewModel()
     }
@@ -140,6 +136,9 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
 
         // Initialize Price Estimation UI
         tvPriceEstimation = findViewById(R.id.tvPriceEstimation)
+
+        // Initialize Warning TextView
+        tvWarning = findViewById(R.id.tvWarning)
 
         // Tambahkan tombol lanjutkan ke hasil
         val btnContinueToResult = findViewById<MaterialButton>(R.id.btnContinueToResult)
@@ -168,6 +167,9 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
         try {
             arFragment = (supportFragmentManager.findFragmentById(R.id.arFragment) as? CustomArFragment)
                 ?: throw IllegalStateException("CustomArFragment not found in layout")
+
+            // Inisialisasi ARSceneManager DI SINI
+            arSceneManager = ARSceneManager(this, arFragment!!)
 
             // Configure ARCore session to prevent light estimation crash
             arFragment?.arSceneView?.let { sceneView ->
@@ -253,30 +255,6 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
         }
     }
 
-    private fun createRenderables() {
-        MaterialFactory.makeOpaqueWithColor(this, Color(android.graphics.Color.RED))
-            .thenAccept { material ->
-                sphereRenderable = ShapeFactory.makeSphere(0.01f, Vector3.zero(), material)
-            }
-            .exceptionally { e ->
-                Log.e("ARMeasurementActivity", "Failed to create sphere renderable", e)
-                null
-            }
-
-        MaterialFactory.makeOpaqueWithColor(this, Color(android.graphics.Color.YELLOW))
-            .thenAccept { material ->
-                lineRenderable = ShapeFactory.makeCube(
-                    Vector3(0.005f, 0.001f, 1f),
-                    Vector3.zero(),
-                    material
-                )
-            }
-            .exceptionally { e ->
-                Log.e("ARMeasurementActivity", "Failed to create line renderable", e)
-                null
-            }
-    }
-
     private fun observeViewModel() {
         val tvInstructions: TextView = findViewById(R.id.tvInstructions)
         val fadeInAnimation = AnimationUtils.loadAnimation(this, R.anim.fade_in)
@@ -292,8 +270,22 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
                                 startAnimation(fadeInAnimation)
                             }
                         }
+
+                        // GANTI updateArScene(state) dengan arSceneManager:
+                        arSceneManager.updateScene(state)
+
+                        // Logika UI lainnya tetap di sini
                         btnUndo.isEnabled = state.isUndoEnabled
-                        updateArScene(state)
+                        btnTakePhoto.visibility = if (state.step == MeasurementStep.COMPLETED) View.VISIBLE else View.GONE
+                        findViewById<MaterialButton>(R.id.btnContinueToResult).visibility = if (state.step == MeasurementStep.COMPLETED) View.VISIBLE else View.GONE
+
+                        // Calculate package size and price when measurement is completed
+                        if (state.step == MeasurementStep.COMPLETED) {
+                            state.finalResult?.let { result ->
+                                calculatePackageSizeAndPrice(result)
+                                updatePriceEstimationUI()
+                            }
+                        }
                     }
                 }
 
@@ -302,47 +294,19 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
                         navigateToResult(result)
                     }
                 }
-            }
-        }
-    }
 
-    private fun updateArScene(state: ARMeasurementUiState) {
-        // remove previous visuals
-        visualNodes.forEach {
-            it.setParent(null)
-        }
-        visualNodes.clear()
-
-        // show/hide take photo button
-        btnTakePhoto.visibility =
-            if (state.step == MeasurementStep.COMPLETED) View.VISIBLE else View.GONE
-
-        // show/hide continue to result button
-        val btnContinueToResult = findViewById<MaterialButton>(R.id.btnContinueToResult)
-        btnContinueToResult.visibility =
-            if (state.step == MeasurementStep.COMPLETED) View.VISIBLE else View.GONE
-
-        // add point spheres
-        state.points.forEach { addSphere(it.worldPosition) }
-
-        when (state.step) {
-            MeasurementStep.BASE_DEFINED -> {
-                val cornerPositions = state.corners.map { it.worldPosition }
-                if (cornerPositions.size >= 4) drawBase(cornerPositions)
-            }
-
-            MeasurementStep.COMPLETED -> {
-                val cornerPositions = state.corners.map { it.worldPosition }
-                if (cornerPositions.size == 8) drawWireframeBox(cornerPositions)
-
-                // Calculate package size and price when measurement is completed
-                state.finalResult?.let { result ->
-                    calculatePackageSizeAndPrice(result)
-                    updatePriceEstimationUI()
+                // --- TAMBAHKAN OBSERVASI WARNING MESSAGE ---
+                launch {
+                    viewModel.warningMessage.collect { warningMessage ->
+                        if (warningMessage != null) {
+                            tvWarning.text = warningMessage
+                            tvWarning.visibility = View.VISIBLE
+                            tvWarning.startAnimation(fadeInAnimation)
+                        } else {
+                            tvWarning.visibility = View.GONE
+                        }
+                    }
                 }
-            }
-
-            else -> { /* START or other states */
             }
         }
     }
@@ -355,34 +319,27 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
 
         val currentState = viewModel.uiState.value
         if (isTracking && currentState.step == MeasurementStep.BASE_DEFINED && currentState.corners.isNotEmpty()) {
-            // clear previous preview edges
-            visualNodes.filter { it.name == "wireframe_edge_preview" }
-                .forEach { it.setParent(null) }
-            visualNodes.removeAll { it.name == "wireframe_edge_preview" }
-
             val screenCenterX = fragment.arSceneView.width / 2f
             val screenCenterY = fragment.arSceneView.height / 2f
             val hitResults = frame.hitTest(screenCenterX, screenCenterY)
 
             val planeHit = hitResults.firstOrNull {
-                it.trackable is Plane && (it.trackable as Plane).isPoseInPolygon(it.hitPose)
+                val trackable = it.trackable
+                trackable is Plane && trackable.isPoseInPolygon(it.hitPose)
             }
 
             planeHit?.let { hit ->
                 val pA = currentState.corners[0].worldPosition
                 val newHeight = max(0.01f, hit.hitPose.ty() - pA.y)
                 smoothedHeight += (newHeight - smoothedHeight) * 0.1f // Faktor smoothing 0.1
-                val height = smoothedHeight
                 val baseCornersPos = currentState.corners.map { it.worldPosition }
-                val topCornersPos = baseCornersPos.map {
-                    Vector3(it.x, pA.y + height, it.z)
-                }
-                drawWireframeBox(baseCornersPos + topCornersPos, isPreview = true)
+
+                // GANTI pemanggilan drawing dengan arSceneManager
+                arSceneManager.drawPreview(baseCornersPos, smoothedHeight)
             }
         } else {
-            visualNodes.filter { it.name == "wireframe_edge_preview" }
-                .forEach { it.setParent(null) }
-            visualNodes.removeAll { it.name == "wireframe_edge_preview" }
+             // Hapus pratinjau jika tidak lagi dalam state yang benar
+             arSceneManager.drawPreview(emptyList(), 0f)
         }
     }
 
@@ -668,7 +625,7 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
      * Show dialog confirming photo was saved
      */
     private fun showPhotoSavedDialog(filename: String) {
-        androidx.appcompat.app.AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle("Foto Tersimpan")
             .setMessage("Foto pengukuran AR berhasil disimpan dengan nama:\n$filename\n\nCek di Galeri > Album PaxelAR")
             .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
@@ -692,77 +649,6 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
      */
 
 
-    private fun addSphere(worldPosition: Vector3) {
-        val sphereNode = Node().apply {
-            renderable = sphereRenderable
-            localPosition = worldPosition
-            setParent(arFragment?.arSceneView?.scene)
-        }
-        visualNodes.add(sphereNode)
-    }
-
-    private fun drawBase(corners: List<Vector3>) {
-        if (corners.size < 4) return
-
-        // Draw base edges
-        for (i in corners.indices) {
-            val start = corners[i]
-            val end = corners[(i + 1) % corners.size]
-            drawLine(start, end)
-        }
-    }
-
-    private fun drawWireframeBox(corners: List<Vector3>, isPreview: Boolean = false) {
-        if (corners.size < 8) return
-
-        val baseCorners = corners.take(4)
-        val topCorners = corners.drop(4)
-
-        // Draw base
-        for (i in baseCorners.indices) {
-            val start = baseCorners[i]
-            val end = baseCorners[(i + 1) % baseCorners.size]
-            drawLine(start, end, isPreview)
-        }
-
-        // Draw top
-        for (i in topCorners.indices) {
-            val start = topCorners[i]
-            val end = topCorners[(i + 1) % topCorners.size]
-            drawLine(start, end, isPreview)
-        }
-
-        // Draw vertical edges
-        for (i in baseCorners.indices) {
-            drawLine(baseCorners[i], topCorners[i], isPreview)
-        }
-    }
-
-    private fun drawLine(start: Vector3, end: Vector3, isPreview: Boolean = false) {
-        val lineNode = Node().apply {
-            renderable = lineRenderable
-
-            val direction = Vector3.subtract(end, start)
-            val length = direction.length()
-            val halfDirection = Vector3(direction.x * 0.5f, direction.y * 0.5f, direction.z * 0.5f)
-            val center = Vector3.add(start, halfDirection)
-
-            localPosition = center
-            localScale = Vector3(1f, 1f, length)
-
-            val rotation = Quaternion.lookRotation(direction.normalized(), Vector3.up())
-            localRotation = rotation
-
-            setParent(arFragment?.arSceneView?.scene)
-
-            if (isPreview) {
-                name = "wireframe_edge_preview"
-            }
-        }
-
-        visualNodes.add(lineNode)
-    }
-
     override fun onResume() {
         super.onResume()
         arFragment?.arSceneView?.resume()
@@ -776,9 +662,7 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
     override fun onDestroy() {
         super.onDestroy()
         arFragment?.arSceneView?.destroy()
-
         pixelCopyHandlerThread.quitSafely()
-
     }
 
 }

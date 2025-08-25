@@ -33,6 +33,7 @@ import com.paxel.arspacescan.util.CsvExporter
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
+import java.text.SimpleDateFormat
 import java.util.*
 
 class HistoryActivity : AppCompatActivity() {
@@ -52,6 +53,7 @@ class HistoryActivity : AppCompatActivity() {
 
     private var allMeasurements = listOf<MeasurementResult>()
     private var measurementList: List<PackageMeasurement> = emptyList() // Store PackageMeasurement data for export
+    private var currentMeasurements: List<PackageMeasurement> = emptyList() // <-- Tambahkan ini untuk menyimpan data
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -119,6 +121,8 @@ class HistoryActivity : AppCompatActivity() {
         // Observe PackageMeasurement data for CSV export
         lifecycleScope.launch {
             measurementViewModel.getAllPackageMeasurements().collect { packageMeasurements ->
+                // Simpan data terbaru ke properti class
+                currentMeasurements = packageMeasurements
                 measurementList = packageMeasurements
             }
         }
@@ -159,7 +163,7 @@ class HistoryActivity : AppCompatActivity() {
 
     // Tambahkan fungsi baru ini untuk long click delete
     private fun showDeleteConfirmationDialog(measurement: MeasurementResult) {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle("Hapus Riwayat")
             .setMessage("Apakah Anda yakin ingin menghapus item '${measurement.packageName}'?")
             .setPositiveButton("Hapus") { _, _ ->
@@ -194,54 +198,26 @@ class HistoryActivity : AppCompatActivity() {
                 finish()
                 true
             }
-            R.id.action_export_csv -> {
-                exportToCSV()
-                true
-            }
             R.id.action_delete_all -> {
                 confirmDeleteAll()
+                true
+            }
+            // --- TAMBAHKAN BLOK WHEN BARU INI ---
+            R.id.action_export_csv -> {
+                exportDataToCsv()
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    private fun exportToCSV() {
-        // Panggil CsvExporter dengan daftar yang sudah kita simpan
-        CsvExporter.exportMeasurements(this, measurementList)
-    }
+    // --- TAMBAHKAN FUNGSI BARU INI ---
+    private fun exportDataToCsv() {
+        val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
+        val timestamp = sdf.format(Date())
+        val fileName = "Paxel_AR_Export_${timestamp}"
 
-    private fun saveCSVFile(content: String) {
-        // Hide loading state
-        progressBar.visibility = View.GONE
-
-        val filename = "paxel_measurements_${System.currentTimeMillis()}.csv"
-
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val values = ContentValues().apply {
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
-                    put(MediaStore.MediaColumns.MIME_TYPE, "text/csv")
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-                }
-                contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)?.let { uri ->
-                    contentResolver.openOutputStream(uri)?.use { outputStream ->
-                        outputStream.write(content.toByteArray())
-                        Toast.makeText(this, getString(R.string.export_success), Toast.LENGTH_LONG).show()
-                    }
-                } ?: run {
-                    Toast.makeText(this, getString(R.string.export_failed), Toast.LENGTH_SHORT).show()
-                }
-            } else {
-                @Suppress("DEPRECATION")
-                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                val file = File(downloadsDir, filename)
-                FileOutputStream(file).use { it.write(content.toByteArray()) }
-                Toast.makeText(this, getString(R.string.export_success), Toast.LENGTH_LONG).show()
-            }
-        } catch (e: Exception) {
-            Toast.makeText(this, getString(R.string.export_failed), Toast.LENGTH_SHORT).show()
-        }
+        CsvExporter.exportAndShare(this, currentMeasurements, fileName)
     }
 
     private fun confirmDeleteAll() {

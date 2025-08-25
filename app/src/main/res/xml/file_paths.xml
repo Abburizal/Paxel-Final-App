@@ -4,5 +4,9 @@
     <external-files-path
         name="my_images"
         path="Pictures" />
-</paths>
 
+    <!-- Path for CSV exports - using cache directory for temporary file sharing -->
+    <cache-path
+        name="shared_csv"
+        path="." />
+</paths>

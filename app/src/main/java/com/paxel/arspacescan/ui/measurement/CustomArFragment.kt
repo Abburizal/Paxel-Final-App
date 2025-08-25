@@ -12,21 +12,21 @@ class CustomArFragment : ArFragment() {
         super.onAttach(context)
     }
     
-    override fun onCreateSessionConfig(session: Session): Config {
-        val config = Config(session)
+    override fun getSessionConfiguration(session: Session): Config {
+        val config = super.getSessionConfiguration(session)
 
         try {
             // CRITICAL FIX: Completely disable light estimation to prevent crash
-            config.setLightEstimationMode(Config.LightEstimationMode.DISABLED)
+            config.lightEstimationMode = Config.LightEstimationMode.DISABLED
 
             // Enable plane detection for measurement
-            config.setPlaneFindingMode(Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL)
+            config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
 
             // Set update mode for better tracking
-            config.setUpdateMode(Config.UpdateMode.LATEST_CAMERA_IMAGE)
+            config.updateMode = Config.UpdateMode.LATEST_CAMERA_IMAGE
 
             // Set focus mode
-            config.setFocusMode(Config.FocusMode.AUTO)
+            config.focusMode = Config.FocusMode.AUTO
 
             Log.d("CustomArFragment", "Session configuration created successfully with light estimation DISABLED")
 
@@ -34,8 +34,8 @@ class CustomArFragment : ArFragment() {
             Log.e("CustomArFragment", "Error configuring session", e)
             // Fallback to absolute minimal configuration
             try {
-                config.setLightEstimationMode(Config.LightEstimationMode.DISABLED)
-                config.setPlaneFindingMode(Config.PlaneFindingMode.HORIZONTAL)
+                config.lightEstimationMode = Config.LightEstimationMode.DISABLED
+                config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL
             } catch (fallbackError: Exception) {
                 Log.e("CustomArFragment", "Even fallback configuration failed", fallbackError)
             }

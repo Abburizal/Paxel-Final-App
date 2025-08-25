@@ -5,8 +5,8 @@ import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.EditText
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.paxel.arspacescan.R
 
 class PackageInputDialog : DialogFragment() {
@@ -39,7 +39,7 @@ class PackageInputDialog : DialogFragment() {
         etPackageName.setText(getString(R.string.default_package_name))
 
         // PERBAIKAN: Menghapus .setTitle() untuk menghilangkan judul ganda
-        val dialog = AlertDialog.Builder(requireContext())
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setView(view)
             .create()
 

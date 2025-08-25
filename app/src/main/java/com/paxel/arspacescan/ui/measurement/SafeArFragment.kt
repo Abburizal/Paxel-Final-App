@@ -10,8 +10,8 @@ import com.google.ar.sceneform.ux.ArFragment
  */
 class SafeArFragment : ArFragment() {
 
-    override fun onCreateSessionConfig(session: Session): Config {
-        val config = super.onCreateSessionConfig(session)
+    override fun getSessionConfiguration(session: Session): Config {
+        val config = super.getSessionConfiguration(session)
 
         // Disable light estimation to prevent the acquireEnvironmentalHdrCubeMap crash
         config.lightEstimationMode = Config.LightEstimationMode.DISABLED

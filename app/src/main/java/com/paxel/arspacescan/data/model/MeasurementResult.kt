@@ -13,5 +13,9 @@ data class MeasurementResult(
     val timestamp: Long,        // waktu pengukuran
     val packageName: String? = null,    // nama paket
     val declaredSize: String? = null,   // ukuran yang dinyatakan
-    val imagePath: String? = null       // URI/path ke file gambar dokumentasi
+    val imagePath: String? = null,      // URI/path ke file gambar dokumentasi
+
+    // --- TAMBAHKAN FIELD UNTUK ESTIMASI HARGA ---
+    val packageSizeCategory: String = "Tidak Diketahui",
+    val estimatedPrice: Int = 0
 ) : Parcelable

@@ -19,6 +19,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.paxel.arspacescan.R
 import com.paxel.arspacescan.data.local.AppDatabase
 import com.paxel.arspacescan.data.model.MeasurementResult
@@ -118,10 +119,19 @@ class ResultActivity : AppCompatActivity() {
                 }
 
             if (result != null) {
-                currentMeasurementResult = result
+                // --- AMBIL DATA ESTIMASI HARGA DARI INTENT ---
+                val estimatedPrice = intent.getIntExtra("ESTIMATED_PRICE", 0)
+                val packageSizeCategory = intent.getStringExtra("PACKAGE_SIZE_CATEGORY") ?: "Tidak Diketahui"
+
+                // --- PERBARUI MEASUREMENT RESULT DENGAN DATA ESTIMASI HARGA ---
+                currentMeasurementResult = result.copy(
+                    estimatedPrice = estimatedPrice,
+                    packageSizeCategory = packageSizeCategory
+                )
+
                 val packageName = intent.getStringExtra(EXTRA_PACKAGE_NAME)
                 val declaredSize = intent.getStringExtra(EXTRA_DECLARED_SIZE)
-                displayMeasurementResult(result, packageName, declaredSize)
+                displayMeasurementResult(currentMeasurementResult!!, packageName, declaredSize)
             } else {
                 showError("Gagal memuat hasil pengukuran")
                 finish()
@@ -284,7 +294,7 @@ class ResultActivity : AppCompatActivity() {
     }
 
     private fun showSaveConfirmationDialog(onSave: () -> Unit, onDontSave: () -> Unit) {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle("Simpan Pengukuran?")
             .setMessage("Anda memiliki hasil pengukuran yang belum disimpan. Apakah Anda ingin menyimpannya?")
             .setPositiveButton("Simpan") { _, _ -> onSave() }
@@ -388,7 +398,7 @@ class ResultActivity : AppCompatActivity() {
             return
         }
 
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             // Menggunakan string yang benar untuk judul
             .setTitle(getString(R.string.delete_measurement_title))
             .setMessage("Yakin ingin menghapus hasil pengukuran ini secara permanen?")
