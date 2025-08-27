@@ -9,7 +9,7 @@ import com.paxel.arspacescan.data.model.PackageMeasurement
 @Database(
     entities = [PackageMeasurement::class],
     version = 4,
-    exportSchema = true
+    exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {

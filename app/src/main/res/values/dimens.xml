@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ==================== SPACING SYSTEM ==================== -->
+
+    <!-- Base Spacing Units (4dp grid system) -->
+    <dimen name="spacing_xs">4dp</dimen>
+    <dimen name="spacing_sm">8dp</dimen>
+    <dimen name="spacing_md">16dp</dimen>
+    <dimen name="spacing_lg">24dp</dimen>
+    <dimen name="spacing_xl">32dp</dimen>
+    <dimen name="spacing_xxl">48dp</dimen>
+    <dimen name="spacing_xxxl">64dp</dimen>
+
+    <!-- Semantic Spacing -->
+    <dimen name="margin_tiny">4dp</dimen>
+    <dimen name="margin_small">8dp</dimen>
+    <dimen name="margin_normal">16dp</dimen>
+    <dimen name="margin_large">24dp</dimen>
+    <dimen name="margin_xlarge">32dp</dimen>
+
+    <dimen name="padding_tiny">4dp</dimen>
+    <dimen name="padding_small">8dp</dimen>
+    <dimen name="padding_normal">16dp</dimen>
+    <dimen name="padding_large">24dp</dimen>
+    <dimen name="padding_xlarge">32dp</dimen>
+
+    <!-- ==================== COMPONENT DIMENSIONS ==================== -->
+
+    <!-- Button Dimensions -->
+    <dimen name="button_height_small">32dp</dimen>
+    <dimen name="button_height_normal">48dp</dimen>
+    <dimen name="button_height_large">56dp</dimen>
+    <dimen name="button_min_width">64dp</dimen>
+    <dimen name="button_padding_horizontal">24dp</dimen>
+    <dimen name="button_padding_vertical">12dp</dimen>
+    <dimen name="button_corner_radius">12dp</dimen>
+
+    <!-- FAB Dimensions -->
+    <dimen name="fab_size_mini">40dp</dimen>
+    <dimen name="fab_size_normal">56dp</dimen>
+    <dimen name="fab_size_large">96dp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
+
+    <!-- Card Dimensions -->
+    <dimen name="card_corner_radius">16dp</dimen>
+    <dimen name="card_elevation">4dp</dimen>
+    <dimen name="card_elevation_pressed">8dp</dimen>
+    <dimen name="card_margin">8dp</dimen>
+    <dimen name="card_padding">16dp</dimen>
+
+    <!-- Input Field Dimensions -->
+    <dimen name="input_height">56dp</dimen>
+    <dimen name="input_corner_radius">12dp</dimen>
+    <dimen name="input_stroke_width">2dp</dimen>
+    <dimen name="input_padding_horizontal">16dp</dimen>
+    <dimen name="input_padding_vertical">12dp</dimen>
+
+    <!-- Chip Dimensions -->
+    <dimen name="chip_height">32dp</dimen>
+    <dimen name="chip_corner_radius">16dp</dimen>
+    <dimen name="chip_padding_horizontal">12dp</dimen>
+    <dimen name="chip_icon_size">18dp</dimen>
+    <dimen name="chip_spacing">8dp</dimen>
+
+    <!-- Progress Indicator Dimensions -->
+    <dimen name="progress_size_small">24dp</dimen>
+    <dimen name="progress_size_normal">48dp</dimen>
+    <dimen name="progress_size_large">72dp</dimen>
+    <dimen name="progress_stroke_width">4dp</dimen>
+
+    <!-- ==================== LAYOUT DIMENSIONS ==================== -->
+
+    <!-- Screen Margins -->
+    <dimen name="screen_margin_horizontal">16dp</dimen>
+    <dimen name="screen_margin_vertical">16dp</dimen>
+    <dimen name="content_padding">24dp</dimen>
+
+    <!-- List Item Dimensions -->
+    <dimen name="list_item_height_small">48dp</dimen>
+    <dimen name="list_item_height_normal">72dp</dimen>
+    <dimen name="list_item_height_large">88dp</dimen>
+    <dimen name="list_item_padding_horizontal">16dp</dimen>
+    <dimen name="list_item_padding_vertical">12dp</dimen>
+    <dimen name="list_divider_height">1dp</dimen>
+
+    <!-- Navigation Dimensions -->
+    <dimen name="toolbar_height">56dp</dimen>
+    <dimen name="bottom_nav_height">56dp</dimen>
+    <dimen name="tab_height">48dp</dimen>
+    <dimen name="navigation_drawer_width">304dp</dimen>
+
+    <!-- ==================== ICON DIMENSIONS ==================== -->
+
+    <dimen name="icon_size_tiny">12dp</dimen>
+    <dimen name="icon_size_small">16dp</dimen>
+    <dimen name="icon_size_normal">24dp</dimen>
+    <dimen name="icon_size_large">32dp</dimen>
+    <dimen name="icon_size_xlarge">48dp</dimen>
+    <dimen name="icon_size_xxlarge">64dp</dimen>
+
+    <!-- App Icon Dimensions -->
+    <dimen name="app_icon_size_small">48dp</dimen>
+    <dimen name="app_icon_size_normal">72dp</dimen>
+    <dimen name="app_icon_size_large">96dp</dimen>
+    <dimen name="app_icon_size_xlarge">144dp</dimen>
+
+    <!-- ==================== MEASUREMENT SPECIFIC DIMENSIONS ==================== -->
+
+    <!-- Measurement Display -->
+    <dimen name="measurement_card_height">120dp</dimen>
+    <dimen name="measurement_label_size">32dp</dimen>
+    <dimen name="measurement_value_size">48dp</dimen>
+    <dimen name="measurement_unit_size">24dp</dimen>
+    <dimen name="measurement_spacing">12dp</dimen>
+
+    <!-- Category Chip -->
+    <dimen name="category_chip_height">40dp</dimen>
+    <dimen name="category_chip_corner_radius">20dp</dimen>
+    <dimen name="category_chip_padding">16dp</dimen>
+
+    <!-- ==================== AR SPECIFIC DIMENSIONS ==================== -->
+
+    <!-- AR UI Elements -->
+    <dimen name="ar_button_size">64dp</dimen>
+    <dimen name="ar_button_corner_radius">32dp</dimen>
+    <dimen name="ar_instruction_padding">24dp</dimen>
+    <dimen name="ar_status_indicator_size">12dp</dimen>
+    <dimen name="ar_anchor_point_size">24dp</dimen>
+    <dimen name="ar_line_width">3dp</dimen>
+
+    <!-- AR Control Panel -->
+    <dimen name="ar_control_panel_height">80dp</dimen>
+    <dimen name="ar_control_panel_padding">16dp</dimen>
+    <dimen name="ar_control_button_size">48dp</dimen>
+    <dimen name="ar_control_button_margin">8dp</dimen>
+
+    <!-- ==================== DIALOG DIMENSIONS ==================== -->
+
+    <!-- Dialog Sizing -->
+    <dimen name="dialog_min_width">280dp</dimen>
+    <dimen name="dialog_max_width">560dp</dimen>
+    <dimen name="dialog_corner_radius">16dp</dimen>
+    <dimen name="dialog_padding">24dp</dimen>
+    <dimen name="dialog_title_margin_bottom">16dp</dimen>
+    <dimen name="dialog_button_height">36dp</dimen>
+    <dimen name="dialog_button_min_width">64dp</dimen>
+
+    <!-- Bottom Sheet -->
+    <dimen name="bottom_sheet_corner_radius">16dp</dimen>
+    <dimen name="bottom_sheet_handle_width">32dp</dimen>
+    <dimen name="bottom_sheet_handle_height">4dp</dimen>
+    <dimen name="bottom_sheet_handle_margin">12dp</dimen>
+
+    <!-- ==================== ELEVATION DIMENSIONS ==================== -->
+
+    <dimen name="elevation_none">0dp</dimen>
+    <dimen name="elevation_low">2dp</dimen>
+    <dimen name="elevation_normal">4dp</dimen>
+    <dimen name="elevation_high">8dp</dimen>
+    <dimen name="elevation_highest">12dp</dimen>
+
+    <!-- Component Specific Elevations -->
+    <dimen name="toolbar_elevation">4dp</dimen>
+    <dimen name="fab_elevation">6dp</dimen>
+    <dimen name="fab_pressed_elevation">12dp</dimen>
+    <dimen name="card_elevation_resting">2dp</dimen>
+    <dimen name="card_elevation_raised">8dp</dimen>
+    <dimen name="bottom_sheet_elevation">8dp</dimen>
+    <dimen name="navigation_drawer_elevation">16dp</dimen>
+
+    <!-- ==================== STATUS BAR & NAVIGATION BAR ==================== -->
+
+    <dimen name="status_bar_height">24dp</dimen>
+    <dimen name="navigation_bar_height">48dp</dimen>
+    <dimen name="system_window_inset_top">24dp</dimen>
+    <dimen name="system_window_inset_bottom">48dp</dimen>
+
+    <!-- ==================== TOUCH TARGET DIMENSIONS ==================== -->
+
+    <dimen name="touch_target_min">48dp</dimen>
+    <dimen name="touch_target_small">32dp</dimen>
+    <dimen name="touch_target_normal">48dp</dimen>
+    <dimen name="touch_target_large">56dp</dimen>
+
+    <!-- ==================== CORNER RADIUS SYSTEM ==================== -->
+
+    <dimen name="corner_radius_none">0dp</dimen>
+    <dimen name="corner_radius_small">8dp</dimen>
+    <dimen name="corner_radius_medium">12dp</dimen>
+    <dimen name="corner_radius_large">16dp</dimen>
+    <dimen name="corner_radius_xlarge">24dp</dimen>
+    <dimen name="corner_radius_full">50dp</dimen>
+
+    <!-- ==================== STROKE/BORDER WIDTHS ==================== -->
+
+    <dimen name="stroke_width_thin">0.5dp</dimen>
+    <dimen name="stroke_width_normal">1dp</dimen>
+    <dimen name="stroke_width_thick">2dp</dimen>
+    <dimen name="stroke_width_extra_thick">3dp</dimen>
+
+    <!-- ==================== RESPONSIVE DIMENSIONS ==================== -->
+    <!-- These should be overridden in sw600dp, sw720dp folders -->
+
+    <!-- Tablet Specific -->
+    <dimen name="content_max_width">600dp</dimen>
+    <dimen name="two_pane_margin">32dp</dimen>
+    <dimen name="master_detail_margin">16dp</dimen>
+
+    <!-- ==================== ANIMATION DIMENSIONS ==================== -->
+
+    <!-- Animation Distances -->
+    <dimen name="animation_offset_small">8dp</dimen>
+    <dimen name="animation_offset_normal">16dp</dimen>
+    <dimen name="animation_offset_large">32dp</dimen>
+
+    <!-- Shared Element Transition -->
+    <dimen name="shared_element_corner_radius">16dp</dimen>
+
+    <!-- ==================== LEGACY DIMENSIONS ==================== -->
+    <!-- For backwards compatibility with existing layouts -->
+
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="nav_header_vertical_spacing">8dp</dimen>
+    <dimen name="nav_header_height">176dp</dimen>
+    <dimen name="fab_margin_default">16dp</dimen>
+
+</resources>

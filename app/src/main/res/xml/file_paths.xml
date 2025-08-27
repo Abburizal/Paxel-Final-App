@@ -1,12 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Path for photos taken by the camera -->
+    <!-- External Pictures Directory untuk menyimpan foto AR -->
     <external-files-path
-        name="my_images"
-        path="Pictures" />
+        name="ar_photos"
+        path="Pictures/" />
 
-    <!-- Path for CSV exports - using cache directory for temporary file sharing -->
+    <!-- External Files Directory -->
+    <external-files-path
+        name="external_files"
+        path="." />
+
+    <!-- External Cache Directory untuk temporary files -->
+    <external-cache-path
+        name="external_cache"
+        path="." />
+
+    <!-- Files Directory untuk app-specific files -->
+    <files-path
+        name="files"
+        path="." />
+
+    <!-- Cache Directory untuk temporary app files -->
     <cache-path
-        name="shared_csv"
+        name="cache"
         path="." />
 </paths>

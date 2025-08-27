@@ -1,63 +1,75 @@
 [versions]
-agp = "8.5.2"
-kotlin = "1.9.25"
-coreKtx = "1.13.1"
+agp = "8.2.0"
+kotlin = "1.9.20"
+coreKtx = "1.12.0"
 junit = "4.13.2"
 junitVersion = "1.1.5"
-espressoCore = "3.6.1"
-appcompat = "1.7.0"
-material = "1.12.0"
+espressoCore = "3.5.1"
+appcompat = "1.6.1"
+material = "1.11.0"
 constraintlayout = "2.1.4"
-lifecycle = "2.8.4"
-activity = "1.9.1"
-fragment = "1.8.2"
-navigation = "2.7.7"
-room = "2.6.1"
-coroutines = "1.8.1"
-arcore = "1.44.0"
-sceneform = "1.17.1"
-gson = "2.11.0"
-mockito = "5.12.0"
-mockitoKotlin = "5.4.0"
-archTesting = "2.2.0"
-robolectric = "4.13"
-testRunner = "1.6.1"
-ksp = "1.9.25-1.0.20"
-lottie = "6.1.0"
+lifecycleVersion = "2.7.0"
+activityVersion = "1.8.2"
+fragmentVersion = "1.6.2"
+navigationVersion = "2.7.6"
+roomVersion = "2.6.1"
+coroutinesVersion = "1.7.3"
+arcoreVersion = "1.41.0"
+sceneformVersion = "1.17.1"
+gsonVersion = "2.10.1"
+lottieVersion = "6.1.0"
+kspVersion = "1.9.20-1.0.14"
+mockitoVersion = "5.8.0"
+mockitoKotlinVersion = "5.1.0"
+archCoreTestingVersion = "2.2.0"
+robolectricVersion = "4.11.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
-androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
-androidx-lifecycle-livedata = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycle" }
-androidx-activity = { group = "androidx.activity", name = "activity-ktx", version.ref = "activity" }
-androidx-fragment = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragment" }
-androidx-navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigation" }
-androidx-navigation-ui = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigation" }
-androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
-androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
-androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
-kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
-kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
-kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
-arcore = { group = "com.google.ar", name = "core", version.ref = "arcore" }
-sceneform-ux = { group = "com.google.ar.sceneform.ux", name = "sceneform-ux", version.ref = "sceneform" }
-sceneform-core = { group = "com.google.ar.sceneform", name = "core", version.ref = "sceneform" }
-gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
-mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
-mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
-androidx-arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "archTesting" }
-robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
-androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "testRunner" }
-lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }
+
+# Lifecycle
+androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleVersion" }
+androidx-lifecycle-livedata = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycleVersion" }
+androidx-activity = { group = "androidx.activity", name = "activity-ktx", version.ref = "activityVersion" }
+androidx-fragment = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragmentVersion" }
+
+# Navigation
+androidx-navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationVersion" }
+androidx-navigation-ui = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigationVersion" }
+
+# Room
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "roomVersion" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomVersion" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "roomVersion" }
+
+# Coroutines
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutinesVersion" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutinesVersion" }
+
+# ARCore & Sceneform
+arcore = { group = "com.google.ar", name = "core", version.ref = "arcoreVersion" }
+sceneform-ux = { group = "com.google.ar.sceneform.ux", name = "sceneform-ux", version.ref = "sceneformVersion" }
+sceneform-core = { group = "com.google.ar.sceneform", name = "core", version.ref = "sceneformVersion" }
+
+# JSON & Animations
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gsonVersion" }
+lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottieVersion" }
+
+# Test Libraries
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockitoVersion" }
+mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlinVersion" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesVersion" }
+androidx-arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "archCoreTestingVersion" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectricVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize" }
-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "kspVersion" }

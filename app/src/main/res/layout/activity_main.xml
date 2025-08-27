@@ -7,190 +7,324 @@
     android:background="@drawable/bg_gradient_main"
     android:fillViewport="true"
     android:overScrollMode="never"
+    android:scrollbars="none"
     tools:context=".ui.main.MainActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
-        android:paddingBottom="32dp">
+        android:paddingHorizontal="@dimen/content_padding"
+        android:paddingTop="@dimen/spacing_xxxl"
+        android:paddingBottom="@dimen/spacing_xl">
 
+        <!-- App Logo Section -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardLogo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="60dp"
-            app:cardBackgroundColor="@color/surface_elevated"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_marginTop="@dimen/spacing_md"
+            app:cardBackgroundColor="@color/white"
             app:cardCornerRadius="24dp"
-            app:cardElevation="8dp"
+            app:cardElevation="@dimen/elevation_high"
+            app:strokeWidth="0dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
                 android:id="@+id/ivMainLogo"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
-                android:layout_margin="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="@dimen/spacing_md"
                 android:contentDescription="@string/app_name"
                 android:scaleType="centerInside"
                 android:src="@mipmap/ic_paxel_logo" />
+
         </com.google.android.material.card.MaterialCardView>
 
-        <TextView
-            android:id="@+id/tvMainTitle"
-            android:layout_width="wrap_content"
+        <!-- Brand Section -->
+
+        <!-- Features Showcase Card -->
+
+        <LinearLayout
+            android:id="@+id/layoutBrand"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="20dp"
             android:gravity="center"
-            android:text="@string/app_name"
-            android:textAppearance="@style/TextAppearance.PaxelAR.Brand"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.494"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/cardLogo" />
-
-        <TextView
-            android:id="@+id/tvSubtitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="12dp"
-            android:layout_marginEnd="16dp"
-            android:gravity="center"
-            android:text="@string/subtitle"
-            android:textAppearance="@style/TextAppearance.PaxelAR.Subtitle1"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvMainTitle" />
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardFeatures"
-            style="@style/Widget.PaxelAR.CardView.Elevated"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="40dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvSubtitle">
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="20dp">
-
-                <TextView
-                    android:id="@+id/feature1"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:drawableStart="@drawable/ic_3d_rotation"
-                    android:drawablePadding="16dp"
-                    android:gravity="center_vertical"
-                    android:text="@string/feature_ar_measurement"
-                    android:textAppearance="@style/TextAppearance.PaxelAR.Body1"
-                    android:textColor="@color/text_primary"
-                    app:drawableTint="@color/accent_primary"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/feature2"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:drawableStart="@drawable/ic_local_shipping"
-                    android:drawablePadding="16dp"
-                    android:gravity="center_vertical"
-                    android:text="@string/feature_price_estimation"
-                    android:textAppearance="@style/TextAppearance.PaxelAR.Body1"
-                    android:textColor="@color/text_primary"
-                    app:drawableTint="@color/secondary"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/feature1" />
-
-                <TextView
-                    android:id="@+id/feature3"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:drawableStart="@drawable/ic_history"
-                    android:drawablePadding="16dp"
-                    android:gravity="center_vertical"
-                    android:text="@string/feature_history_tracking"
-                    android:textAppearance="@style/TextAppearance.PaxelAR.Body1"
-                    android:textColor="@color/text_primary"
-                    app:drawableTint="@color/info"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/feature2" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnStartMeasurement"
-            style="@style/Widget.PaxelAR.Button.Icon"
-            android:layout_width="0dp"
-            android:layout_height="56dp"
-            android:layout_marginTop="24dp"
-            android:text="@string/start_measurement"
-            android:textSize="16sp"
-            app:icon="@drawable/ic_camera"
-            app:iconSize="24dp"
+            android:orientation="vertical"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/cardFeatures" />
+            app:layout_constraintTop_toBottomOf="@+id/cardLogo">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnHistory"
-            style="@style/Widget.PaxelAR.Button.Outlined"
+            <TextView
+                android:id="@+id/tvMainTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins_bold"
+                android:letterSpacing="0.02"
+                android:text="@string/app_name"
+                android:textColor="@color/white"
+                android:textSize="28sp" />
+
+            <TextView
+                android:id="@+id/tvSubtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/spacing_lg"
+                android:layout_marginTop="@dimen/spacing_sm"
+                android:alpha="0.90"
+                android:fontFamily="@font/poppins_regular"
+                android:gravity="center"
+                android:lineSpacingExtra="4dp"
+                android:text="@string/main_title"
+                android:textColor="@color/ar_surface_indicator"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardFeatures"
             android:layout_width="0dp"
-            android:layout_height="56dp"
-            android:layout_marginTop="16dp"
-            android:text="@string/view_history"
-            android:textColor="@color/white"
-            android:textSize="16sp"
-            app:icon="@drawable/ic_history"
-            app:iconSize="24dp"
-            app:iconTint="@color/white"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnStartMeasurement"
-            app:strokeColor="@color/white" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnAbout"
-            style="@style/Widget.PaxelAR.Button.Text"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:layout_marginTop="8dp"
-            android:text="Tentang Aplikasi"
-            android:textColor="@color/white"
-            android:alpha="0.9"
-            app:icon="@drawable/ic_info"
-            app:iconSize="20dp"
-            app:iconTint="@color/white"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnHistory" />
-
-        <TextView
-            android:id="@+id/tvVersionInfo"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:alpha="0.8"
-            android:text="@string/version_info"
-            android:textAppearance="@style/TextAppearance.PaxelAR.Caption"
-            android:textColor="@color/white"
+            android:layout_marginTop="@dimen/spacing_xl"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="@dimen/corner_radius_large"
+            app:cardElevation="@dimen/elevation_normal"
+            app:strokeWidth="0dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.497"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnAbout" />
+            app:layout_constraintTop_toBottomOf="@+id/layoutBrand">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/spacing_xl">
+
+                <!-- Feature Items Container -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Feature 1: AR Measurement -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingVertical="@dimen/spacing_md">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_marginEnd="@dimen/spacing_md"
+                            app:cardBackgroundColor="@color/primary"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_3d_rotation"
+                                app:tint="@color/white"
+                                android:contentDescription="AR Measurement Icon" />
+
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/feature_ar_measurement"
+                            android:textColor="@color/text_primary"
+                            android:fontFamily="@font/poppins_medium"
+                            android:textSize="16sp" />
+
+                    </LinearLayout>
+
+                    <!-- Feature 2: Price Estimation -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingVertical="@dimen/spacing_md">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_marginEnd="@dimen/spacing_md"
+                            app:cardBackgroundColor="@color/secondary"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_local_shipping"
+                                app:tint="@color/white"
+                                android:contentDescription="Price Estimation Icon" />
+
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/feature_price_estimation"
+                            android:textColor="@color/text_primary"
+                            android:fontFamily="@font/poppins_medium"
+                            android:textSize="16sp" />
+
+                    </LinearLayout>
+
+                    <!-- Feature 3: History Tracking -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingVertical="@dimen/spacing_md">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_marginEnd="@dimen/spacing_md"
+                            app:cardBackgroundColor="@color/tertiary"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_history"
+                                app:tint="@color/white"
+                                android:contentDescription="History Tracking Icon" />
+
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/feature_history_tracking"
+                            android:textColor="@color/text_primary"
+                            android:fontFamily="@font/poppins_medium"
+                            android:textSize="16sp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Action Buttons Section -->
+        <LinearLayout
+            android:id="@+id/layoutActions"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_xl"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/cardFeatures">
+
+            <!-- Primary Action Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnStartMeasurement"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginHorizontal="32dp"
+                android:backgroundTint="@color/ar_anchor_point"
+                android:elevation="@dimen/elevation_normal"
+                android:fontFamily="@font/poppins_semibold"
+                android:text="@string/start_measurement"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                app:cornerRadius="16dp"
+                app:icon="@drawable/ic_camera"
+                app:iconGravity="textStart"
+                app:iconPadding="@dimen/spacing_sm"
+                app:iconSize="24dp"
+                app:iconTint="@color/white" />
+
+            <!-- Secondary Action Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnHistory"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="@dimen/spacing_md"
+                android:layout_marginHorizontal="32dp"
+                android:text="@string/view_history"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:fontFamily="@font/poppins_semibold"
+                app:cornerRadius="16dp"
+                app:icon="@drawable/ic_history"
+                app:iconGravity="textStart"
+                app:iconPadding="@dimen/spacing_sm"
+                app:iconSize="24dp"
+                app:iconTint="@color/white"
+                app:strokeColor="@color/white"
+                app:strokeWidth="2dp" />
+
+        </LinearLayout>
+
+        <!-- Footer Section -->
+        <LinearLayout
+            android:id="@+id/layoutFooter"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_lg"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/layoutActions"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintVertical_bias="0.0">
+
+            <!-- About Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAbout"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="@string/about_app"
+                android:textColor="@color/white"
+                android:fontFamily="@font/poppins_medium"
+                android:textSize="14sp"
+                android:alpha="0.85"
+                app:icon="@drawable/ic_info"
+                app:iconGravity="textStart"
+                app:iconPadding="@dimen/spacing_xs"
+                app:iconSize="20dp"
+                app:iconTint="@color/white" />
+
+            <!-- Version Info -->
+            <TextView
+                android:id="@+id/tvVersionInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_sm"
+                android:text="@string/version_info"
+                android:textColor="@color/white"
+                android:fontFamily="@font/poppins_regular"
+                android:textSize="12sp"
+                android:alpha="0.6" />
+
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 </androidx.core.widget.NestedScrollView>

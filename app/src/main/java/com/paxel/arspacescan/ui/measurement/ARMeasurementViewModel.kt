@@ -1,6 +1,6 @@
 package com.paxel.arspacescan.ui.measurement
 
-import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.ar.sceneform.AnchorNode
@@ -16,9 +16,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.math.max
-import kotlin.math.min
 
 class ARMeasurementViewModel : ViewModel() {
+
+    companion object {
+        private const val TAG = "ARMeasurementViewModel"
+    }
 
     private val _uiState = MutableStateFlow(ARMeasurementUiState())
     val uiState = _uiState.asStateFlow()
@@ -29,169 +32,251 @@ class ARMeasurementViewModel : ViewModel() {
     private val _warningMessage = MutableStateFlow<String?>(null)
     val warningMessage = _warningMessage.asStateFlow()
 
-    fun handleArTap(anchorNode: AnchorNode, context: Context) {
-        val currentState = _uiState.value
-        when (currentState.step) {
-            MeasurementStep.START -> {
-                addPoint(anchorNode)
-                _uiState.update {
-                    it.copy(
-                        step = MeasurementStep.BASE_POINT_B_ADDED,
-                        instructionTextId = R.string.instruction_step_2
-                    )
+    fun handleArTap(anchorNode: AnchorNode, context: android.content.Context) {
+        try {
+            val currentState = _uiState.value
+            Log.d(TAG, "Handling AR tap for step: ${currentState.step}")
+
+            when (currentState.step) {
+                MeasurementStep.SELECT_BASE_POINT_1,
+                MeasurementStep.SELECT_BASE_POINT_2,
+                MeasurementStep.SELECT_BASE_POINT_3,
+                MeasurementStep.SELECT_BASE_POINT_4 -> {
+                    defineBase(anchorNode.worldPosition)
+                }
+
+                MeasurementStep.BASE_DEFINED -> {
+                    val baseLevelY = currentState.corners.firstOrNull()?.worldPosition?.y ?: 0f
+                    val measuredHeight = max(0.01f, anchorNode.worldPosition.y - baseLevelY)
+                    confirmHeight(measuredHeight)
+                }
+
+                MeasurementStep.COMPLETED -> {
+                    // No action after completion
+                    Log.d(TAG, "Measurement already completed, ignoring tap")
                 }
             }
-            MeasurementStep.BASE_POINT_B_ADDED -> {
-                addPoint(anchorNode)
-                defineBaseCorners(anchorNode)
-            }
-            MeasurementStep.BASE_DEFINED -> {
-                defineHeightAndComplete(anchorNode)
-            }
-            MeasurementStep.COMPLETED -> {
-                // Do nothing in completed state
-            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error handling AR tap", e)
+            showWarningMessage("Gagal memproses tap AR: ${e.message}")
         }
     }
 
-    private fun addPoint(point: AnchorNode) {
-        _uiState.update {
-            it.copy(
-                points = it.points + point,
-                isUndoEnabled = true
-            )
-        }
-    }
+    private fun defineBase(position: Vector3) {
+        try {
+            _uiState.update { currentState ->
+                val newCorners = currentState.corners.toMutableList()
+                newCorners.add(AnchorNode().apply { worldPosition = position })
 
-    private fun defineBaseCorners(anchorNode: AnchorNode) {
-        val points = _uiState.value.points
-        if (points.size < 2) return
+                val newStep = when (newCorners.size) {
+                    1 -> MeasurementStep.SELECT_BASE_POINT_2
+                    2 -> MeasurementStep.SELECT_BASE_POINT_3
+                    3 -> MeasurementStep.SELECT_BASE_POINT_4
+                    4 -> MeasurementStep.BASE_DEFINED
+                    else -> currentState.step
+                }
 
-        val p1 = points[0].worldPosition
-        val p2 = points[1].worldPosition
+                val newInstruction = when (newStep) {
+                    MeasurementStep.SELECT_BASE_POINT_2 -> R.string.instruction_step_2
+                    MeasurementStep.SELECT_BASE_POINT_3 -> R.string.instruction_step_3
+                    MeasurementStep.SELECT_BASE_POINT_4 -> R.string.instruction_step_4
+                    MeasurementStep.BASE_DEFINED -> R.string.instruction_set_height
+                    else -> currentState.instructionTextId
+                }
 
-        // 1. Ratakan ketinggian (sumbu Y) untuk memastikan alasnya datar
-        val avgY = (p1.y + p2.y) / 2f
+                // Validate base shape if we have at least 3 corners
+                if (newCorners.size >= 3) {
+                    validateBaseShape(newCorners.map { it.worldPosition })
+                }
 
-        // 2. Tentukan titik minimum dan maksimum untuk membentuk Bounding Box 2D (pada bidang XZ)
-        val minX = min(p1.x, p2.x)
-        val maxX = max(p1.x, p2.x)
-        val minZ = min(p1.z, p2.z)
-        val maxZ = max(p1.z, p2.z)
+                Log.d(TAG, "Base definition step completed: ${newCorners.size} corners, step: $newStep")
 
-        // 3. Buat 4 sudut kotak yang sempurna secara matematis (ortogonal)
-        val pA = Vector3(minX, avgY, minZ)
-        val pB = Vector3(minX, avgY, maxZ)
-        val pC = Vector3(maxX, avgY, maxZ)
-        val pD = Vector3(maxX, avgY, minZ)
-
-        // Urutan sudut disesuaikan agar kalkulasi di MeasurementCalculator tetap benar
-        val corners = listOf(pA, pB, pC, pD).map { position ->
-            AnchorNode().apply { worldPosition = position }
-        }
-
-        _uiState.update {
-            it.copy(
-                corners = corners,
-                step = MeasurementStep.BASE_DEFINED,
-                instructionTextId = R.string.instruction_step_3
-            )
-        }
-
-        validateBaseShape(listOf(pA, pB, pC, pD))
-    }
-
-    private fun defineHeightAndComplete(heightPoint: AnchorNode) {
-        val baseCorners = _uiState.value.corners
-        if (baseCorners.isEmpty()) return
-
-        // Logika ini sudah akurat karena hanya mengambil nilai Y dari titik tinggi
-        val height = kotlin.math.abs(heightPoint.worldPosition.y - baseCorners[0].worldPosition.y)
-
-        val topCorners = baseCorners.map { baseNode ->
-            val pos = baseNode.worldPosition
-            AnchorNode().apply {
-                worldPosition = Vector3(pos.x, pos.y + height, pos.z)
+                currentState.copy(
+                    corners = newCorners,
+                    step = newStep,
+                    instructionTextId = newInstruction,
+                    isUndoEnabled = true
+                )
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error defining base", e)
+            showWarningMessage("Gagal menambah titik base: ${e.message}")
         }
+    }
 
-        val allCorners = baseCorners + topCorners
-        val result = MeasurementCalculator.calculateFinalMeasurement(allCorners)
+    private fun confirmHeight(height: Float) {
+        try {
+            val currentState = _uiState.value
+            if (currentState.step != MeasurementStep.BASE_DEFINED || currentState.corners.size != 4) {
+                Log.w(TAG, "Cannot confirm height: invalid state")
+                return
+            }
 
-        if (result != null) {
+            Log.d(TAG, "Confirming height: $height meters")
+            completeMeasurement(currentState.corners, height)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error confirming height", e)
+            showWarningMessage("Gagal mengkonfirmasi tinggi: ${e.message}")
+        }
+    }
+
+    private fun completeMeasurement(baseCorners: List<AnchorNode>, height: Float) {
+        try {
+            Log.d(TAG, "Completing measurement with ${baseCorners.size} corners and height $height")
+
+            val result = MeasurementCalculator.calculate(baseCorners.map { it.worldPosition }, height)
+
+            if (!result.isValid()) {
+                Log.w(TAG, "Invalid measurement result: $result")
+                showWarningMessage("Hasil pengukuran tidak valid, coba lagi")
+                return
+            }
+
             _uiState.update {
                 it.copy(
+                    step = MeasurementStep.COMPLETED,
+                    instructionTextId = R.string.instruction_measurement_complete,
                     finalResult = PackageMeasurement(
+                        // Basic info akan diisi nanti dari intent
                         packageName = "",
                         declaredSize = "",
                         width = result.width,
                         height = result.height,
-                        depth = result.depth, // Use correct field name
+                        depth = result.depth,
                         volume = result.volume,
                         timestamp = System.currentTimeMillis()
                     ),
-                    step = MeasurementStep.COMPLETED, // Use correct enum value
-                    instructionTextId = R.string.instruction_step_3 // Use existing resource
+                    isUndoEnabled = false,
+                    qualityScore = result.getConfidence()
                 )
             }
+
+            clearWarningMessage()
+            Log.d(TAG, "Measurement completed successfully")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error completing measurement", e)
+            showWarningMessage("Gagal menyelesaikan pengukuran: ${e.message}")
         }
     }
 
     fun undoLastPoint() {
-        val currentState = _uiState.value
-        if (currentState.points.isNotEmpty()) {
-            val newPoints = currentState.points.dropLast(1)
-            val newStep = if (newPoints.isEmpty()) MeasurementStep.START else MeasurementStep.BASE_POINT_B_ADDED
-            val newInstruction = if (newPoints.isEmpty()) R.string.instruction_step_1 else R.string.instruction_step_2
+        try {
+            _uiState.update { currentState ->
+                if (currentState.corners.isEmpty()) return@update currentState
 
-            _uiState.update {
-                it.copy(
-                    points = newPoints,
-                    corners = emptyList(),
+                // PERBAIKAN: Menggunakan removeAt(size-1) yang kompatible dengan API 24
+                // Mengganti removeLast() yang hanya tersedia di API 35+
+                val newCorners = currentState.corners.toMutableList()
+                if (newCorners.isNotEmpty()) {
+                    newCorners.removeAt(newCorners.size - 1)
+                }
+
+                val newStep = when (newCorners.size) {
+                    0 -> MeasurementStep.SELECT_BASE_POINT_1
+                    1 -> MeasurementStep.SELECT_BASE_POINT_2
+                    2 -> MeasurementStep.SELECT_BASE_POINT_3
+                    3 -> MeasurementStep.SELECT_BASE_POINT_4
+                    else -> currentState.step
+                }
+
+                val newInstruction = when (newStep) {
+                    MeasurementStep.SELECT_BASE_POINT_1 -> R.string.instruction_step_1
+                    MeasurementStep.SELECT_BASE_POINT_2 -> R.string.instruction_step_2
+                    MeasurementStep.SELECT_BASE_POINT_3 -> R.string.instruction_step_3
+                    MeasurementStep.SELECT_BASE_POINT_4 -> R.string.instruction_step_4
+                    else -> currentState.instructionTextId
+                }
+
+                clearWarningMessage()
+                Log.d(TAG, "Undo completed: ${newCorners.size} corners remaining")
+
+                currentState.copy(
+                    corners = newCorners,
                     step = newStep,
                     instructionTextId = newInstruction,
-                    isUndoEnabled = newPoints.isNotEmpty()
+                    isUndoEnabled = newCorners.isNotEmpty(),
+                    finalResult = null
                 )
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during undo", e)
+            showWarningMessage("Gagal membatalkan aksi terakhir")
         }
-        clearWarningMessage()
     }
 
     fun reset() {
-        _uiState.value = ARMeasurementUiState()
-        clearWarningMessage()
-    }
-
-    private fun validateBaseShape(corners: List<Vector3>) {
-        val validationResult = AngleValidator.validateBaseAngles(corners)
-        if (!validationResult.isValid) {
-            val badAngles = validationResult.problematicAngles.joinToString("°, ")
-            _warningMessage.value = "Perhatian: Sudut alas tidak presisi (sekitar ${badAngles}°). Hasil mungkin kurang akurat."
+        try {
+            _uiState.value = ARMeasurementUiState()
+            clearWarningMessage()
+            Log.d(TAG, "Measurement reset completed")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during reset", e)
         }
     }
 
-    fun clearWarningMessage() {
+    private fun validateBaseShape(corners: List<Vector3>) {
+        try {
+            val validationResult = AngleValidator.validateBaseAngles(corners)
+            if (!validationResult.isValid) {
+                val badAngles = validationResult.problematicAngles.joinToString("°, ") { "%.0f".format(it) }
+                val warningMessage = "Perhatian: Sudut alas tidak presisi (sekitar ${badAngles}°). Hasil mungkin kurang akurat."
+                showWarningMessage(warningMessage)
+            } else {
+                clearWarningMessage()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error validating base shape", e)
+        }
+    }
+
+    private fun showWarningMessage(message: String) {
+        _warningMessage.value = message
+        Log.w(TAG, "Warning: $message")
+    }
+
+    private fun clearWarningMessage() {
         _warningMessage.value = null
     }
 
-    fun completeMeasurement() {
+    fun navigateToResult() {
         viewModelScope.launch {
-            _uiState.value.finalResult?.let {
-                _navigationEvent.emit(it)
+            try {
+                _uiState.value.finalResult?.let {
+                    _navigationEvent.emit(it)
+                    Log.d(TAG, "Navigation to result emitted")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error navigating to result", e)
             }
         }
     }
 
-    fun updateHeight(height: Float) {
-        // Fungsi ini bisa digunakan nanti jika diperlukan
+    /**
+     * Get current measurement progress (0-100)
+     */
+    fun getCurrentProgress(): Int {
+        return _uiState.value.getProgressPercentage()
+    }
+
+    /**
+     * Check if measurement can be completed
+     */
+    fun canCompleteMeasurement(): Boolean {
+        val state = _uiState.value
+        return state.step == MeasurementStep.COMPLETED && state.finalResult != null
+    }
+
+    /**
+     * Get measurement quality assessment
+     */
+    fun getMeasurementQuality(): String {
+        val qualityScore = _uiState.value.qualityScore
+        return when {
+            qualityScore >= 0.9f -> "Sangat Baik"
+            qualityScore >= 0.7f -> "Baik"
+            qualityScore >= 0.5f -> "Cukup"
+            else -> "Rendah"
+        }
     }
 }
-
-data class ARMeasurementUiState(
-    val step: MeasurementStep = MeasurementStep.START,
-    val instructionTextId: Int = R.string.instruction_step_1,
-    val points: List<AnchorNode> = emptyList(),
-    val corners: List<AnchorNode> = emptyList(),
-    val isUndoEnabled: Boolean = false,
-    val finalResult: PackageMeasurement? = null
-)

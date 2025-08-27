@@ -1,6 +1,7 @@
 package com.paxel.arspacescan.ui.result
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -27,6 +28,7 @@ import com.paxel.arspacescan.data.repository.MeasurementRepository
 import com.paxel.arspacescan.databinding.ActivityResultBinding
 import com.paxel.arspacescan.ui.common.safeHapticFeedback
 import com.paxel.arspacescan.ui.main.MainActivity
+import com.paxel.arspacescan.ui.measurement.ARMeasurementActivity
 import com.paxel.arspacescan.util.PackageSizeValidator
 import kotlinx.coroutines.launch
 import java.io.File
@@ -103,32 +105,24 @@ class ResultActivity : AppCompatActivity() {
         val measurementId = intent.getLongExtra(EXTRA_MEASUREMENT_ID, -1L)
 
         if (measurementId != -1L) {
-            // Jika ada ID, berarti membuka dari History.
             loadMeasurementFromDatabase(measurementId)
         } else {
-            // Jika tidak ada ID, berarti hasil baru dari ARMeasurementActivity.
             val result: MeasurementResult? =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    intent.getParcelableExtra(
-                        EXTRA_MEASUREMENT_RESULT,
-                        MeasurementResult::class.java
-                    )
+                    intent.getParcelableExtra(EXTRA_MEASUREMENT_RESULT, MeasurementResult::class.java)
                 } else {
                     @Suppress("DEPRECATION")
                     intent.getParcelableExtra(EXTRA_MEASUREMENT_RESULT)
                 }
 
             if (result != null) {
-                // --- AMBIL DATA ESTIMASI HARGA DARI INTENT ---
                 val estimatedPrice = intent.getIntExtra("ESTIMATED_PRICE", 0)
                 val packageSizeCategory = intent.getStringExtra("PACKAGE_SIZE_CATEGORY") ?: "Tidak Diketahui"
 
-                // --- PERBARUI MEASUREMENT RESULT DENGAN DATA ESTIMASI HARGA ---
                 currentMeasurementResult = result.copy(
                     estimatedPrice = estimatedPrice,
                     packageSizeCategory = packageSizeCategory
                 )
-
                 val packageName = intent.getStringExtra(EXTRA_PACKAGE_NAME)
                 val declaredSize = intent.getStringExtra(EXTRA_DECLARED_SIZE)
                 displayMeasurementResult(currentMeasurementResult!!, packageName, declaredSize)
@@ -291,6 +285,22 @@ class ResultActivity : AppCompatActivity() {
         }
         startActivity(intent)
         finish()
+    }
+    // Create centralized navigation manager
+    object NavigationManager {
+        fun navigateToARMeasurement(context: Context, packageName: String) {
+            val intent = Intent(context, ARMeasurementActivity::class.java).apply {
+                putExtra("PACKAGE_NAME", packageName)
+            }
+            context.startActivity(intent)
+        }
+
+        fun navigateToResult(context: Context, measurementResult: MeasurementResult) {
+            val intent = Intent(context, ResultActivity::class.java).apply {
+                putExtra(ResultActivity.EXTRA_MEASUREMENT_RESULT, measurementResult)
+            }
+            context.startActivity(intent)
+        }
     }
 
     private fun showSaveConfirmationDialog(onSave: () -> Unit, onDontSave: () -> Unit) {

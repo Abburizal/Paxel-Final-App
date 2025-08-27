@@ -1,97 +1,135 @@
 package com.paxel.arspacescan.ui.main
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.google.android.material.button.MaterialButton
 import com.google.ar.core.ArCoreApk
 import com.paxel.arspacescan.R
-import com.paxel.arspacescan.ui.about.AboutActivity
+import com.paxel.arspacescan.navigation.NavigationManager
 import com.paxel.arspacescan.ui.common.safeHapticFeedback
-import com.paxel.arspacescan.ui.history.HistoryActivity
-import com.paxel.arspacescan.ui.measurement.ARMeasurementActivity
 
-// Perbarui implementasi listener
 class MainActivity : AppCompatActivity(), PackageInputDialog.OnPackageInputListener {
 
     private val CAMERA_PERMISSION_CODE = 100
-    private var isSplashScreen = true
+    private var isReady = false
+
+    companion object {
+        private const val TAG = "MainActivity"
+        private const val SPLASH_SCREEN_DURATION = 2000L
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Install the splash screen BEFORE calling super.onCreate()
+        val splashScreen = installSplashScreen()
+
         super.onCreate(savedInstanceState)
 
-        // Tampilkan splash screen
-        setContentView(R.layout.activity_splash)
+        // Keep splash screen visible while loading
+        splashScreen.setKeepOnScreenCondition { !isReady }
 
+        setContentView(R.layout.activity_main)
+
+        // Initialize app after a delay to show splash screen
+        initializeApp()
+    }
+
+    private fun initializeApp() {
+        // Simulate app initialization time
         Handler(Looper.getMainLooper()).postDelayed({
-            isSplashScreen = false
-            setContentView(R.layout.activity_main)
-            setupMainMenu()
-        }, 2000)
+            try {
+                setupMainMenu()
+                isReady = true
+                Log.d(TAG, "App initialization completed")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error during app initialization", e)
+                isReady = true // Still dismiss splash even if there's an error
+                showError("Gagal memuat aplikasi: ${e.message}")
+            }
+        }, SPLASH_SCREEN_DURATION)
     }
 
     private fun setupMainMenu() {
-        val startMeasurementButton = findViewById<MaterialButton>(R.id.btnStartMeasurement)
-        val historyButton = findViewById<MaterialButton>(R.id.btnHistory)
-        val aboutButton = findViewById<MaterialButton>(R.id.btnAbout)
+        try {
+            val startMeasurementButton = findViewById<MaterialButton>(R.id.btnStartMeasurement)
+            val historyButton = findViewById<MaterialButton>(R.id.btnHistory)
+            val aboutButton = findViewById<MaterialButton>(R.id.btnAbout)
 
-        startMeasurementButton.setOnClickListener {
-            it.safeHapticFeedback()
-            checkPermissionsAndStartMeasurement()
-        }
+            startMeasurementButton.setOnClickListener {
+                it.safeHapticFeedback()
+                checkPermissionsAndStartMeasurement()
+            }
 
-        historyButton.setOnClickListener {
-            it.safeHapticFeedback()
-            startActivity(Intent(this, HistoryActivity::class.java))
-        }
+            historyButton.setOnClickListener {
+                it.safeHapticFeedback()
+                NavigationManager.navigateToHistory(this)
+            }
 
-        aboutButton.setOnClickListener {
-            it.safeHapticFeedback()
-            val intent = Intent(this, AboutActivity::class.java)
-            startActivity(intent)
+            aboutButton.setOnClickListener {
+                it.safeHapticFeedback()
+                NavigationManager.navigateToAbout(this)
+            }
+
+            Log.d(TAG, "Main menu setup completed")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up main menu", e)
+            showError("Gagal memuat menu utama: ${e.message}")
         }
     }
 
     private fun checkPermissionsAndStartMeasurement() {
-        val availability = ArCoreApk.getInstance().checkAvailability(this)
-        if (availability.isTransient) {
-            Handler(Looper.getMainLooper()).postDelayed({
-                checkPermissionsAndStartMeasurement()
-            }, 200)
-            return
-        }
-
-        if (availability.isSupported) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.CAMERA),
-                    CAMERA_PERMISSION_CODE
-                )
-            } else {
-                showPackageInputDialog()
+        try {
+            val availability = ArCoreApk.getInstance().checkAvailability(this)
+            if (availability.isTransient) {
+                Handler(Looper.getMainLooper()).postDelayed({
+                    checkPermissionsAndStartMeasurement()
+                }, 200)
+                return
             }
-        } else {
-            Toast.makeText(
-                this,
-                "Perangkat ini tidak mendukung ARCore",
-                Toast.LENGTH_LONG
-            ).show()
+
+            if (availability.isSupported) {
+                Log.d(TAG, "ARCore is supported, checking camera permission")
+
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                    != PackageManager.PERMISSION_GRANTED
+                ) {
+                    Log.d(TAG, "Requesting camera permission")
+                    ActivityCompat.requestPermissions(
+                        this,
+                        arrayOf(Manifest.permission.CAMERA),
+                        CAMERA_PERMISSION_CODE
+                    )
+                } else {
+                    Log.d(TAG, "Camera permission granted, showing package input dialog")
+                    showPackageInputDialog()
+                }
+            } else {
+                Log.e(TAG, "ARCore not supported: $availability")
+                showError("Perangkat ini tidak mendukung ARCore")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error checking permissions and AR support", e)
+            showError("Gagal memeriksa dukungan AR: ${e.message}")
         }
     }
 
     private fun showPackageInputDialog() {
-        val dialog = PackageInputDialog.newInstance() // Gunakan newInstance() untuk best practice
-        dialog.show(supportFragmentManager, PackageInputDialog.TAG)
+        try {
+            val dialog = PackageInputDialog.newInstance()
+            dialog.show(supportFragmentManager, PackageInputDialog.TAG)
+            Log.d(TAG, "Package input dialog shown")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing package input dialog", e)
+            showError("Gagal menampilkan dialog input paket")
+        }
     }
 
     override fun onRequestPermissionsResult(
@@ -100,27 +138,52 @@ class MainActivity : AppCompatActivity(), PackageInputDialog.OnPackageInputListe
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
         if (requestCode == CAMERA_PERMISSION_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "Camera permission granted")
                 showPackageInputDialog()
             } else {
-                Toast.makeText(
-                    this,
-                    "Izin kamera diperlukan untuk menggunakan fitur AR",
-                    Toast.LENGTH_LONG
-                ).show()
+                Log.w(TAG, "Camera permission denied")
+                showError("Izin kamera diperlukan untuk menggunakan fitur AR")
             }
         }
     }
 
-
-    // [PERBAIKAN] Implementasi OnPackageInputListener yang sudah diperbarui
+    /**
+     * Implementation of OnPackageInputListener
+     */
     override fun onPackageInput(packageName: String) {
-        // Handle data input paket yang diterima dari PackageInputDialog
-        // Mulai ARMeasurementActivity dengan informasi paket
-        val intent = Intent(this, ARMeasurementActivity::class.java)
-        intent.putExtra("PACKAGE_NAME", packageName)
-        // Hapus pengiriman "DECLARED_SIZE" karena sudah tidak ada
-        startActivity(intent)
+        try {
+            Log.d(TAG, "Package input received: $packageName")
+
+            NavigationManager.navigateToARMeasurement(
+                context = this,
+                packageName = packageName
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error handling package input", e)
+            showError("Gagal memulai pengukuran: ${e.message}")
+        }
+    }
+
+    private fun showError(message: String) {
+        Log.e(TAG, message)
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "MainActivity resumed")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Log.d(TAG, "MainActivity paused")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d(TAG, "MainActivity destroyed")
     }
 }

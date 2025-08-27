@@ -1,58 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light_cream">
+    android:background="@drawable/bg_gradient_main"
+    tools:context=".ui.main.MainActivity">
 
+    <!-- App Logo -->
     <ImageView
         android:id="@+id/ivLogo"
         android:layout_width="120dp"
         android:layout_height="120dp"
+        android:layout_marginBottom="32dp"
+        android:contentDescription="@string/app_name"
         android:src="@mipmap/ic_paxel_logo"
-        android:scaleType="centerInside"
-        android:adjustViewBounds="true"
         app:layout_constraintBottom_toTopOf="@+id/tvAppName"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed" />
 
+    <!-- App Name -->
     <TextView
         android:id="@+id/tvAppName"
-        style="?attr/textAppearanceHeadlineLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Paxel AR SpaceScan"
-        android:textColor="@color/primary"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@+id/lottieLoading"
+        android:layout_marginBottom="64dp"
+        android:text="@string/app_title_spacescan"
+        android:textColor="@color/white"
+        android:fontFamily="@font/poppins_bold"
+        android:textSize="28sp"
+        app:layout_constraintBottom_toTopOf="@+id/progressIndicator"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/ivLogo" />
 
-    <!-- Lottie Animation for Loading -->
-    <com.airbnb.lottie.LottieAnimationView
-        android:id="@+id/lottieLoading"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_marginTop="32dp"
+    <!-- Loading Indicator -->
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/progressIndicator"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:indeterminate="true"
+        app:indicatorColor="@color/white"
+        app:trackColor="@color/white"
+        app:trackCornerRadius="24dp"
+        app:indicatorSize="48dp"
+        app:trackThickness="4dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvAppName"
-        app:lottie_autoPlay="true"
-        app:lottie_loop="true"
-        app:lottie_rawRes="@raw/loading_animation" />
+        app:layout_constraintTop_toBottomOf="@+id/tvAppName" />
 
-    <!-- Fallback Progress Bar (if Lottie fails) -->
+    <!-- Fallback Progress Bar (if Material not available) -->
     <ProgressBar
-        android:id="@+id/progressBarFallback"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:id="@+id/progressBar"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:indeterminateTint="@color/white"
         android:visibility="gone"
-        android:indeterminateTint="@color/primary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

@@ -1,5 +1,5 @@
 package com.paxel.arspacescan.ui.measurement
-import com.paxel.arspacescan.data.mapper.toMeasurementResult
+
 import android.Manifest
 import android.content.ContentValues
 import android.content.Intent
@@ -33,10 +33,10 @@ import com.google.ar.core.TrackingState
 import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.FrameTime
 import com.google.ar.sceneform.Scene
-import com.google.ar.sceneform.ux.ArFragment
 import com.paxel.arspacescan.R
+import com.paxel.arspacescan.data.mapper.toMeasurementResult
 import com.paxel.arspacescan.data.model.MeasurementResult
-import com.paxel.arspacescan.data.model.PackageMeasurement
+import com.paxel.arspacescan.navigation.NavigationManager
 import com.paxel.arspacescan.ui.common.safeHapticFeedback
 import com.paxel.arspacescan.ui.result.ResultActivity
 import com.paxel.arspacescan.util.PackageSizeValidator
@@ -57,62 +57,62 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
         }
     }
 
-    private var arFragment: ArFragment? = null
+    // UI Components
+    private var arFragment: MeasurementArFragment? = null
     private lateinit var btnTakePhoto: MaterialButton
     private lateinit var cvTrackingHelp: MaterialCardView
     private lateinit var btnUndo: MaterialButton
     private lateinit var btnReset: MaterialButton
-    private lateinit var tvWarning: TextView  // Add warning TextView property
+    private lateinit var tvWarning: TextView
+    private lateinit var tvPriceEstimation: TextView
+
+    // AR and Scene Management
     private var isArCoreSupported = true
     private var smoothedHeight: Float = 0.0f
     private lateinit var pixelCopyHandlerThread: HandlerThread
     private lateinit var pixelCopyHandler: Handler
-
-    // TAMBAHKAN properti untuk ARSceneManager
     private lateinit var arSceneManager: ARSceneManager
-
 
     // Price Estimation Variables
     private var estimatedPrice = 0
     private var packageSizeCategory = ""
-    private lateinit var tvPriceEstimation: TextView
 
-    // store incoming extras so we can forward them later safely
+    // Intent data
     private var packageNameExtra: String? = null
     private var declaredSizeExtra: String? = null
 
     // Toast spam prevention
     private var lastToastTime = 0L
 
-    // Photo capture state
-    // private var pendingPhotoBitmap: Bitmap? = null
-
-    // Photo capture constants
     companion object {
-        private const val CAMERA_PERMISSION_CODE = 100 // Sudah ada
-        private const val STORAGE_PERMISSION_REQUEST_CODE = 101 // Tambahkan ini
+        private const val TAG = "ARMeasurementActivity"
+        private const val CAMERA_PERMISSION_CODE = 100
+        private const val STORAGE_PERMISSION_REQUEST_CODE = 101
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ar_measurement)
 
-        // store extras early
-        packageNameExtra = intent.getStringExtra("PACKAGE_NAME")
-        declaredSizeExtra = intent.getStringExtra("DECLARED_SIZE")
+        // Store extras early
+        packageNameExtra = intent.getStringExtra(NavigationManager.Extras.PACKAGE_NAME)
+        declaredSizeExtra = intent.getStringExtra(NavigationManager.Extras.DECLARED_SIZE)
+
+        Log.d(TAG, "Starting AR measurement for package: $packageNameExtra")
+
         // Check storage permissions
         pixelCopyHandlerThread = HandlerThread("PixelCopyThread")
         pixelCopyHandlerThread.start()
         pixelCopyHandler = Handler(pixelCopyHandlerThread.looper)
+
         checkARCoreSupport()
         if (!isArCoreSupported) {
-            Toast.makeText(this, "ARCore tidak didukung di perangkat ini", Toast.LENGTH_LONG).show()
+            showError("ARCore tidak didukung di perangkat ini")
             finish()
             return
         }
 
         setupUI()
-        // HAPUS pemanggilan createRenderables() karena sudah di-handle ARSceneManager
         setupAR()
         observeViewModel()
     }
@@ -121,86 +121,87 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
         try {
             val availability = com.google.ar.core.ArCoreApk.getInstance().checkAvailability(this)
             isArCoreSupported = availability.isSupported || availability.isTransient
+            Log.d(TAG, "ARCore support check: ${availability}")
         } catch (e: Exception) {
-            Log.e("ARMeasurementActivity", "ARCore check failed", e)
+            Log.e(TAG, "ARCore check failed", e)
             isArCoreSupported = false
         }
     }
 
     private fun setupUI() {
-        btnUndo = findViewById(R.id.btnUndo)
-        btnReset = findViewById(R.id.btnReset)
-        btnTakePhoto = findViewById(R.id.btnTakePhoto)
-        cvTrackingHelp = findViewById(R.id.cvTrackingHelp)
+        try {
+            btnUndo = findViewById(R.id.btnUndo)
+            btnReset = findViewById(R.id.btnReset)
+            btnTakePhoto = findViewById(R.id.btnTakePhoto)
+            cvTrackingHelp = findViewById(R.id.cvTrackingHelp)
+            tvPriceEstimation = findViewById(R.id.tvPriceEstimation)
+            tvWarning = findViewById(R.id.tvWarning)
 
-        // Initialize Price Estimation UI
-        tvPriceEstimation = findViewById(R.id.tvPriceEstimation)
+            val btnContinueToResult = findViewById<MaterialButton>(R.id.btnContinueToResult)
 
-        // Initialize Warning TextView
-        tvWarning = findViewById(R.id.tvWarning)
+            btnUndo.setOnClickListener {
+                it.safeHapticFeedback()
+                viewModel.undoLastPoint()
+            }
 
-        // Tambahkan tombol lanjutkan ke hasil
-        val btnContinueToResult = findViewById<MaterialButton>(R.id.btnContinueToResult)
+            btnReset.setOnClickListener {
+                it.safeHapticFeedback()
+                resetMeasurement()
+            }
 
-        btnUndo.setOnClickListener {
-            it.safeHapticFeedback()
-            viewModel.undoLastPoint()
-        }
-        btnReset.setOnClickListener {
-            it.safeHapticFeedback()
-            resetMeasurement()
-        }
-        btnTakePhoto.setOnClickListener {
-            it.safeHapticFeedback()
-            takePhoto()
-        }
+            btnTakePhoto.setOnClickListener {
+                it.safeHapticFeedback()
+                takePhoto()
+            }
 
-        // Setup tombol lanjutkan ke hasil
-        btnContinueToResult.setOnClickListener {
-            it.safeHapticFeedback()
-            proceedToResults()
+            btnContinueToResult.setOnClickListener {
+                it.safeHapticFeedback()
+                proceedToResults()
+            }
+
+            Log.d(TAG, "UI setup completed")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up UI", e)
+            showError("Gagal memuat antarmuka: ${e.message}")
         }
     }
 
     private fun setupAR() {
         try {
-            arFragment = (supportFragmentManager.findFragmentById(R.id.arFragment) as? CustomArFragment)
-                ?: throw IllegalStateException("CustomArFragment not found in layout")
+            arFragment = (supportFragmentManager.findFragmentById(R.id.arFragment) as? MeasurementArFragment)
+                ?: throw IllegalStateException("MeasurementArFragment not found in layout")
 
-            // Inisialisasi ARSceneManager DI SINI
             arSceneManager = ARSceneManager(this, arFragment!!)
+            Log.d(TAG, "ARSceneManager initialized successfully")
 
-            // Configure ARCore session to prevent light estimation crash
             arFragment?.arSceneView?.let { sceneView ->
                 sceneView.planeRenderer.isEnabled = true
                 sceneView.planeRenderer.isVisible = true
             }
 
-            // add update listener
             arFragment?.arSceneView?.scene?.addOnUpdateListener(this)
 
-            // Enhanced tap listener with better error handling
             arFragment?.setOnTapArPlaneListener { hitResult, plane, _ ->
                 val fragment = arFragment ?: return@setOnTapArPlaneListener
 
+                if (!isArReadyForMeasurement()) {
+                    return@setOnTapArPlaneListener
+                }
+
                 // Enhanced plane tracking validation
                 if (plane.trackingState != TrackingState.TRACKING) {
-                    Log.w("ARMeasurementActivity", "Tap diabaikan: plane belum tracking.")
+                    Log.w(TAG, "Tap diabaikan: plane belum tracking.")
                     showUserFeedback("Tunggu hingga permukaan terdeteksi dengan baik")
                     return@setOnTapArPlaneListener
                 }
+
+                // Validate hit result quality
                 if (!isHitResultValid(hitResult, plane)) {
-                    // Pesan spesifik jika terlalu jauh
                     if (hitResult.distance > 5.0f) {
                         showUserFeedback("Objek terlalu jauh, coba lebih dekat")
                     } else {
                         showUserFeedback("Ketuk area yang lebih stabil untuk hasil terbaik")
                     }
-                    return@setOnTapArPlaneListener
-                }
-                // Validate hit result quality
-                if (!isHitResultValid(hitResult, plane)) {
-                    showUserFeedback("Ketuk area yang lebih stabil untuk hasil terbaik")
                     return@setOnTapArPlaneListener
                 }
 
@@ -211,17 +212,37 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
                         setParent(fragment.arSceneView.scene)
                     }
                     if (anchorNode.anchor == null) {
-                        Log.e("ARMeasurementActivity", "Anchor gagal dibuat.")
+                        Log.e(TAG, "Anchor gagal dibuat.")
                         showUserFeedback("Gagal membuat titik pengukuran, coba lagi")
                         return@setOnTapArPlaneListener
                     }
                     viewModel.handleArTap(anchorNode, this@ARMeasurementActivity)
                 }
             }
+
+            Log.d(TAG, "AR setup completed successfully")
         } catch (e: Exception) {
-            Log.e("ARMeasurementActivity", "AR setup failed", e)
-            Toast.makeText(this, "Gagal memulai AR: ${e.message}", Toast.LENGTH_LONG).show()
+            Log.e(TAG, "AR setup failed", e)
+            showError("Gagal memulai AR: ${e.message}")
             finish()
+        }
+    }
+
+    private fun isArReadyForMeasurement(): Boolean {
+        val fragment = arFragment ?: return false
+
+        return try {
+            fragment.isReadyForMeasurement()
+        } catch (e: Exception) {
+            Log.w(TAG, "Error checking AR readiness", e)
+
+            // Fallback check - basic AR state validation
+            val sceneView = fragment.arSceneView ?: return false
+            val session = sceneView.session ?: return false
+            val frame = sceneView.arFrame ?: return false
+
+            // Check if camera is tracking
+            frame.camera.trackingState == TrackingState.TRACKING
         }
     }
 
@@ -237,7 +258,7 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
                     // Check tracking confidence
                     plane.trackingState == TrackingState.TRACKING
         } catch (e: Exception) {
-            Log.w("ARMeasurementActivity", "Hit result validation failed", e)
+            Log.w(TAG, "Hit result validation failed", e)
             false
         }
     }
@@ -271,12 +292,13 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
                         }
                         arSceneManager.updateScene(state)
                         btnUndo.isEnabled = state.isUndoEnabled
-                        btnTakePhoto.visibility = if (state.step == MeasurementStep.COMPLETED) View.VISIBLE else View.GONE
-                        findViewById<MaterialButton>(R.id.btnContinueToResult).visibility = if (state.step == MeasurementStep.COMPLETED) View.VISIBLE else View.GONE
+                        btnTakePhoto.visibility =
+                            if (state.step == MeasurementStep.COMPLETED) View.VISIBLE else View.GONE
+                        findViewById<MaterialButton>(R.id.btnContinueToResult).visibility =
+                            if (state.step == MeasurementStep.COMPLETED) View.VISIBLE else View.GONE
 
                         if (state.step == MeasurementStep.COMPLETED) {
                             state.finalResult?.let { result ->
-                                // Always treat as PackageMeasurement and convert
                                 val measurementResult = result.toMeasurementResult()
                                 calculatePackageSizeAndPrice(measurementResult)
                                 updatePriceEstimationUI()
@@ -285,30 +307,19 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
                     }
                 }
 
-                // --- PERBAIKAN DITERAPKAN DI SINI ---
                 launch {
                     viewModel.navigationEvent.collect { packageMeasurement ->
-                        // Convert PackageMeasurement to MeasurementResult
-                        val measurementResult = MeasurementResult(
-                            id = packageMeasurement.id,
-                            width = packageMeasurement.width,
-                            height = packageMeasurement.height,
-                            depth = packageMeasurement.depth,
-                            volume = packageMeasurement.volume,
-                            timestamp = packageMeasurement.timestamp,
+                        // Convert PackageMeasurement to MeasurementResult for navigation
+                        val measurementResult = packageMeasurement.toMeasurementResult()
+
+                        NavigationManager.navigateToResult(
+                            context = this@ARMeasurementActivity,
+                            measurementResult = measurementResult,
                             packageName = packageMeasurement.packageName,
                             declaredSize = packageMeasurement.declaredSize,
-                            imagePath = packageMeasurement.imagePath,
-                            packageSizeCategory = packageMeasurement.packageSizeCategory,
-                            estimatedPrice = packageMeasurement.estimatedPrice
+                            estimatedPrice = packageMeasurement.estimatedPrice,
+                            packageSizeCategory = packageMeasurement.packageSizeCategory
                         )
-
-                        val intent = Intent(this@ARMeasurementActivity, ResultActivity::class.java).apply {
-                            putExtra(ResultActivity.EXTRA_PACKAGE_NAME, packageMeasurement.packageName)
-                            putExtra(ResultActivity.EXTRA_DECLARED_SIZE, packageMeasurement.declaredSize)
-                            putExtra(ResultActivity.EXTRA_MEASUREMENT_RESULT, measurementResult)
-                        }
-                        startActivity(intent)
                         finish()
                     }
                 }
@@ -335,29 +346,94 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
         cvTrackingHelp.visibility = if (isTracking) View.GONE else View.VISIBLE
 
         val currentState = viewModel.uiState.value
+
+        // Enhanced height measurement logic
         if (isTracking && currentState.step == MeasurementStep.BASE_DEFINED && currentState.corners.isNotEmpty()) {
-            val screenCenterX = fragment.arSceneView.width / 2f
-            val screenCenterY = fragment.arSceneView.height / 2f
-            val hitResults = frame.hitTest(screenCenterX, screenCenterY)
+            try {
+                val arSceneView = fragment.arSceneView
+                val screenCenterX = arSceneView.width / 2f
+                val screenCenterY = arSceneView.height / 2f
 
-            val planeHit = hitResults.firstOrNull {
-                val trackable = it.trackable
-                trackable is Plane && trackable.isPoseInPolygon(it.hitPose)
-            }
+                val hitResults = frame.hitTest(screenCenterX, screenCenterY)
 
-            planeHit?.let { hit ->
-                val pA = currentState.corners[0].worldPosition
-                val newHeight = max(0.01f, hit.hitPose.ty() - pA.y)
-                smoothedHeight += (newHeight - smoothedHeight) * 0.1f // Faktor smoothing 0.1
-                val baseCornersPos = currentState.corners.map { it.worldPosition }
+                // Find best plane hit dengan improved validation
+                val planeHit = findBestPlaneHit(hitResults, currentState.corners)
 
-                // GANTI pemanggilan drawing dengan arSceneManager
-                arSceneManager.drawPreview(baseCornersPos, smoothedHeight)
+                planeHit?.let { hit ->
+                    val baseLevelY = currentState.corners[0].worldPosition.y
+                    val hitY = hit.hitPose.ty()
+                    val rawHeight = max(0.01f, hitY - baseLevelY)
+
+                    // Improved smoothing dengan bounds checking
+                    val targetHeight = if (rawHeight > 0.01f && rawHeight < 3.0f) {
+                        rawHeight
+                    } else {
+                        smoothedHeight
+                    }
+
+                    // Smooth the height measurement
+                    smoothedHeight += (targetHeight - smoothedHeight) * 0.15f
+
+                    val baseCornersPos = currentState.corners.map { it.worldPosition }
+
+                    // Add validation sebelum drawing
+                    if (baseCornersPos.size == 4 && smoothedHeight > 0.005f) {
+                        Log.d(TAG, "Drawing preview: height=$smoothedHeight, corners=${baseCornersPos.size}")
+                        arSceneManager.drawPreview(baseCornersPos, smoothedHeight)
+                    } else {
+                        Log.w(TAG, "Invalid preview state: corners=${baseCornersPos.size}, height=$smoothedHeight")
+                        arSceneManager.drawPreview(emptyList(), 0f)
+                    }
+
+                } ?: run {
+                    // Clear preview jika tidak ada valid hit
+                    Log.d(TAG, "No valid plane hit found, clearing preview")
+                    arSceneManager.drawPreview(emptyList(), 0f)
+                }
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Error in onUpdate height measurement", e)
+                arSceneManager.drawPreview(emptyList(), 0f)
             }
         } else {
-             // Hapus pratinjau jika tidak lagi dalam state yang benar
-             arSceneManager.drawPreview(emptyList(), 0f)
+            // Hapus pratinjau jika tidak lagi dalam state yang benar
+            if (currentState.step != MeasurementStep.BASE_DEFINED) {
+                arSceneManager.drawPreview(emptyList(), 0f)
+            }
         }
+    }
+
+    /**
+     * Helper function untuk finding the best plane hit
+     */
+    private fun findBestPlaneHit(
+        hitResults: List<com.google.ar.core.HitResult>,
+        baseCorners: List<AnchorNode>
+    ): com.google.ar.core.HitResult? {
+
+        if (baseCorners.isEmpty()) return null
+
+        val baseLevelY = baseCorners[0].worldPosition.y
+
+        // Filter dan sort hit results by quality
+        return hitResults
+            .filter { hit ->
+                val trackable = hit.trackable
+                trackable is Plane &&
+                        trackable.isPoseInPolygon(hit.hitPose) &&
+                        hit.distance > 0.1f && hit.distance < 5.0f && // Reasonable distance
+                        trackable.trackingState == TrackingState.TRACKING
+            }
+            .sortedBy { hit ->
+                // Prefer hits that are at reasonable height above base
+                val heightDiff = hit.hitPose.ty() - baseLevelY
+                when {
+                    heightDiff < 0.01f -> Float.MAX_VALUE  // Too low
+                    heightDiff > 2.0f -> hit.distance + 1000f  // Very high, deprioritize
+                    else -> hit.distance // Prefer closer hits within reasonable height
+                }
+            }
+            .firstOrNull()
     }
 
     /**
@@ -365,17 +441,17 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
      */
     private fun calculatePackageSizeAndPrice(result: MeasurementResult) {
         try {
-            // Tambahkan 'this' sebagai context
             val validation = PackageSizeValidator.validate(this, result)
             packageSizeCategory = validation.category
             estimatedPrice = validation.estimatedPrice
-            Log.d("ARMeasurementActivity", "Validation result: Category=${validation.category}, Price=Rp${validation.estimatedPrice}")
+            Log.d(TAG, "Validation result: Category=${validation.category}, Price=Rp${validation.estimatedPrice}")
         } catch (e: Exception) {
-            Log.e("ARMeasurementActivity", "Error validating package size", e)
+            Log.e(TAG, "Error validating package size", e)
             packageSizeCategory = "Tidak diketahui"
             estimatedPrice = 0
         }
     }
+
     /**
      * Updates the price estimation UI with calculated values
      */
@@ -388,9 +464,9 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
             }
             tvPriceEstimation.text = priceText
             tvPriceEstimation.visibility = View.VISIBLE
-            Log.d("ARMeasurementActivity", "Price estimation UI updated: $priceText")
+            Log.d(TAG, "Price estimation UI updated: $priceText")
         } catch (e: Exception) {
-            Log.e("ARMeasurementActivity", "Error updating price estimation UI", e)
+            Log.e(TAG, "Error updating price estimation UI", e)
         }
     }
 
@@ -398,75 +474,52 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
      * Resets measurement state
      */
     private fun resetMeasurement() {
-        viewModel.reset()
+        try {
+            viewModel.reset()
+            smoothedHeight = 0.0f
 
-        // Reset price estimation
-        estimatedPrice = 0
-        packageSizeCategory = ""
-        tvPriceEstimation.visibility = View.GONE
+            // Reset price estimation
+            estimatedPrice = 0
+            packageSizeCategory = ""
+            tvPriceEstimation.visibility = View.GONE
 
-        Log.d("ARMeasurementActivity", "Measurement reset")
+            Log.d(TAG, "Measurement reset completed")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error resetting measurement", e)
+        }
     }
 
     /**
      * Proceeds to ResultActivity with measurement data and price estimation
      */
     private fun proceedToResults() {
-        val finalResult = viewModel.uiState.value.finalResult
-        if (finalResult == null) {
-            Toast.makeText(this, "Tidak ada hasil pengukuran untuk disimpan", Toast.LENGTH_SHORT).show()
-            return
-        }
-
         try {
-            // Always treat as PackageMeasurement and convert
-            val measurementResult = finalResult.toMeasurementResult()
-
-            val intent = Intent(this, ResultActivity::class.java).apply {
-                putExtra(ResultActivity.EXTRA_MEASUREMENT_RESULT, measurementResult)
-                putExtra(ResultActivity.EXTRA_PACKAGE_NAME, packageNameExtra)
-                putExtra(ResultActivity.EXTRA_DECLARED_SIZE, declaredSizeExtra)
-                putExtra("ESTIMATED_PRICE", estimatedPrice)
-                putExtra("PACKAGE_SIZE_CATEGORY", packageSizeCategory)
+            val finalResult = viewModel.uiState.value.finalResult
+            if (finalResult == null) {
+                showError("Tidak ada hasil pengukuran untuk disimpan")
+                return
             }
 
-            startActivity(intent)
+            val measurementResult = finalResult.toMeasurementResult()
+
+            NavigationManager.navigateToResult(
+                context = this,
+                measurementResult = measurementResult,
+                packageName = packageNameExtra,
+                declaredSize = declaredSizeExtra,
+                estimatedPrice = estimatedPrice,
+                packageSizeCategory = packageSizeCategory
+            )
             finish()
 
         } catch (e: Exception) {
-            Log.e("ARMeasurementActivity", "Error proceeding to results", e)
-            Toast.makeText(this, "Gagal melanjutkan ke hasil: ${e.message}", Toast.LENGTH_SHORT).show()
+            Log.e(TAG, "Error proceeding to results", e)
+            showError("Gagal melanjutkan ke hasil: ${e.message}")
         }
     }
 
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        when (requestCode) {
-            CAMERA_PERMISSION_CODE -> {
-                // Logika izin kamera yang sudah ada (jika ada)
-            }
-            STORAGE_PERMISSION_REQUEST_CODE -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Jika izin diberikan, panggil kembali takePhoto()
-                    takePhoto()
-                } else {
-                    Toast.makeText(
-                        this,
-                        "Izin penyimpanan diperlukan untuk menyimpan foto",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
-        }
-    }
     private fun takePhoto() {
-        // --- Periksa Izin Penyimpanan untuk Android 9 ke bawah ---
+        // Check storage permissions for Android 9 and below
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -475,74 +528,63 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
                     arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
                     STORAGE_PERMISSION_REQUEST_CODE
                 )
-                return // Hentikan proses jika izin belum diberikan
+                return
             }
         }
+
         val fragment = arFragment ?: run {
-            Toast.makeText(this, "AR Fragment tidak tersedia", Toast.LENGTH_SHORT).show()
+            showError("AR Fragment tidak tersedia")
             return
         }
 
         val arSceneView = fragment.arSceneView
 
         if (arSceneView.arFrame == null || arSceneView.arFrame?.camera?.trackingState != TrackingState.TRACKING) {
-            Toast.makeText(this, "Tunggu hingga kamera AR tracking dengan baik", Toast.LENGTH_SHORT).show()
+            showError("Tunggu hingga kamera AR tracking dengan baik")
             return
         }
 
         try {
-            Log.d("ARMeasurementActivity", "Memulai proses PixelCopy...")
+            Log.d(TAG, "Memulai proses PixelCopy...")
 
-            // Buat Bitmap kosong untuk menampung hasil screenshot
             val bitmap = Bitmap.createBitmap(arSceneView.width, arSceneView.height, Bitmap.Config.ARGB_8888)
 
-            // Gunakan PixelCopy untuk menyalin konten SurfaceView ke Bitmap
             PixelCopy.request(arSceneView, bitmap, { copyResult ->
                 if (copyResult == PixelCopy.SUCCESS) {
-                    // Jika berhasil, jalankan penyimpanan di thread utama
                     runOnUiThread {
-                        Log.d("ARMeasurementActivity", "PixelCopy berhasil, menyimpan bitmap...")
+                        Log.d(TAG, "PixelCopy berhasil, menyimpan bitmap...")
                         saveBitmapToGallery(bitmap)
                     }
                 } else {
-                    // Jika gagal, tampilkan pesan error
                     runOnUiThread {
-                        Log.e("ARMeasurementActivity", "PixelCopy gagal dengan kode error: $copyResult")
-                        Toast.makeText(this, "Gagal mengambil screenshot AR: Error $copyResult", Toast.LENGTH_LONG).show()
+                        Log.e(TAG, "PixelCopy gagal dengan kode error: $copyResult")
+                        showError("Gagal mengambil screenshot AR: Error $copyResult")
                     }
                 }
-            }, pixelCopyHandler) // Jalankan proses ini di handler yang sudah kita buat
+            }, pixelCopyHandler)
 
         } catch (e: Exception) {
-            Log.e("ARMeasurementActivity", "Error saat memanggil takePhoto", e)
-            Toast.makeText(this, "Gagal mengambil foto: ${e.message}", Toast.LENGTH_SHORT).show()
+            Log.e(TAG, "Error saat memanggil takePhoto", e)
+            showError("Gagal mengambil foto: ${e.message}")
         }
     }
 
-    /**
-     * Improved bitmap saving with better error handling and user feedback
-     */
     private fun saveBitmapToGallery(bitmap: Bitmap) {
         try {
-            Log.d("ARMeasurementActivity", "Starting to save bitmap to gallery...")
+            Log.d(TAG, "Starting to save bitmap to gallery...")
 
-            // For Android 10+ (API 29+), use MediaStore API
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 saveBitmapToGalleryQ(bitmap)
             } else {
-                // For older versions, use legacy method
                 saveBitmapToGalleryLegacy(bitmap)
             }
 
         } catch (e: Exception) {
-            Log.e("ARMeasurementActivity", "Error saving bitmap to gallery", e)
-            Toast.makeText(this, "Gagal menyimpan foto: ${e.message}", Toast.LENGTH_LONG).show()
+            Log.e(TAG, "Error saving bitmap to gallery", e)
+            showError("Gagal menyimpan foto: ${e.message}")
         }
     }
 
-    /**
-     * Save bitmap for Android 10+ using scoped storage
-     */
     private fun saveBitmapToGalleryQ(bitmap: Bitmap) {
         try {
             val timestamp = System.currentTimeMillis()
@@ -561,34 +603,29 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
                 contentResolver.openOutputStream(uri)?.use { outputStream ->
                     val success = bitmap.compress(Bitmap.CompressFormat.JPEG, 95, outputStream)
                     if (success) {
-                        // Mark as not pending
                         values.clear()
                         values.put(MediaStore.Images.Media.IS_PENDING, 0)
                         contentResolver.update(uri, values, null, null)
 
-                        Log.d("ARMeasurementActivity", "Photo saved successfully to $uri")
+                        Log.d(TAG, "Photo saved successfully to $uri")
                         Toast.makeText(this, "Foto berhasil disimpan ke galeri!", Toast.LENGTH_SHORT).show()
 
-                        // Show user where to find the photo
                         showPhotoSavedDialog(filename)
                     } else {
                         contentResolver.delete(uri, null, null)
-                        Toast.makeText(this, "Gagal mengkompresi foto", Toast.LENGTH_SHORT).show()
+                        showError("Gagal mengkompresi foto")
                     }
                 }
             } else {
-                Toast.makeText(this, "Gagal membuat file foto di galeri", Toast.LENGTH_SHORT).show()
+                showError("Gagal membuat file foto di galeri")
             }
 
         } catch (e: Exception) {
-            Log.e("ARMeasurementActivity", "Error saving bitmap with MediaStore Q", e)
-            Toast.makeText(this, "Gagal menyimpan foto: ${e.message}", Toast.LENGTH_LONG).show()
+            Log.e(TAG, "Error saving bitmap with MediaStore Q", e)
+            showError("Gagal menyimpan foto: ${e.message}")
         }
     }
 
-    /**
-     * Save bitmap for Android 9 and below
-     */
     private fun saveBitmapToGalleryLegacy(bitmap: Bitmap) {
         try {
             val timestamp = System.currentTimeMillis()
@@ -607,66 +644,103 @@ class ARMeasurementActivity : AppCompatActivity(), Scene.OnUpdateListener {
                 contentResolver.openOutputStream(uri)?.use { outputStream ->
                     val success = bitmap.compress(Bitmap.CompressFormat.JPEG, 95, outputStream)
                     if (success) {
-                        Log.d("ARMeasurementActivity", "Photo saved successfully (legacy) to $uri")
+                        Log.d(TAG, "Photo saved successfully (legacy) to $uri")
                         Toast.makeText(this, "Foto berhasil disimpan ke galeri!", Toast.LENGTH_SHORT).show()
                         showPhotoSavedDialog(filename)
                     } else {
                         contentResolver.delete(uri, null, null)
-                        Toast.makeText(this, "Gagal mengkompresi foto", Toast.LENGTH_SHORT).show()
+                        showError("Gagal mengkompresi foto")
                     }
                 }
             } else {
-                Toast.makeText(this, "Gagal membuat file foto di galeri", Toast.LENGTH_SHORT).show()
+                showError("Gagal membuat file foto di galeri")
             }
 
         } catch (e: Exception) {
-            Log.e("ARMeasurementActivity", "Error saving bitmap with legacy method", e)
-            Toast.makeText(this, "Gagal menyimpan foto: ${e.message}", Toast.LENGTH_LONG).show()
+            Log.e(TAG, "Error saving bitmap with legacy method", e)
+            showError("Gagal menyimpan foto: ${e.message}")
         }
     }
 
-    /**
-     * Show dialog confirming photo was saved
-     */
     private fun showPhotoSavedDialog(filename: String) {
-        MaterialAlertDialogBuilder(this)
-            .setTitle("Foto Tersimpan")
-            .setMessage("Foto pengukuran AR berhasil disimpan dengan nama:\n$filename\n\nCek di Galeri > Album PaxelAR")
-            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
-            .setNegativeButton("Buka Galeri") { _, _ ->
-                // Open gallery to show the saved photo
-                try {
-                    val intent = Intent(Intent.ACTION_VIEW).apply {
-                        type = "image/*"
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        try {
+            MaterialAlertDialogBuilder(this)
+                .setTitle("Foto Tersimpan")
+                .setMessage("Foto pengukuran AR berhasil disimpan dengan nama:\n$filename\n\nCek di Galeri > Album PaxelAR")
+                .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+                .setNegativeButton("Buka Galeri") { _, _ ->
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW).apply {
+                            type = "image/*"
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        }
+                        startActivity(intent)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to open gallery", e)
                     }
-                    startActivity(intent)
-                } catch (e: Exception) {
-                    Log.e("ARMeasurementActivity", "Failed to open gallery", e)
                 }
-            }
-            .show()
+                .show()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing photo saved dialog", e)
+        }
     }
 
-    /**
-     * Handle permission request results
-     */
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
+        when (requestCode) {
+            CAMERA_PERMISSION_CODE -> {
+                // Handle camera permission if needed
+            }
+            STORAGE_PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    takePhoto()
+                } else {
+                    showError("Izin penyimpanan diperlukan untuk menyimpan foto")
+                }
+            }
+        }
+    }
+
+    private fun showError(message: String) {
+        Log.e(TAG, message)
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
 
     override fun onResume() {
         super.onResume()
-        arFragment?.arSceneView?.resume()
+        try {
+            arFragment?.arSceneView?.resume()
+            arFragment?.let { fragment ->
+                Log.d(TAG, "AR Configuration: ${fragment.getConfigurationSummary()}")
+                Log.d(TAG, "AR Performance: ${fragment.getPerformanceMetrics()}")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during onResume", e)
+        }
     }
 
     override fun onPause() {
         super.onPause()
-        arFragment?.arSceneView?.pause()
+        try {
+            arFragment?.arSceneView?.pause()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during onPause", e)
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        arFragment?.arSceneView?.destroy()
-        pixelCopyHandlerThread.quitSafely()
+        try {
+            arFragment?.arSceneView?.destroy()
+            arSceneManager.cleanup()
+            pixelCopyHandlerThread.quitSafely()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during onDestroy", e)
+        }
     }
-
 }

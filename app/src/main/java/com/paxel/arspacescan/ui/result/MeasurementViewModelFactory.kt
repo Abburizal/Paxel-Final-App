@@ -13,6 +13,6 @@ class MeasurementViewModelFactory(
         if (modelClass.isAssignableFrom(MeasurementViewModel::class.java)) {
             return MeasurementViewModel(repository) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }

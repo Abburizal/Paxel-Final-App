@@ -12,8 +12,10 @@
         style="@style/Widget.PaxelAR.Toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
+        android:background="@color/primary"
+        app:titleTextColor="@color/on_primary"
         app:layout_constraintTop_toTopOf="parent"
-        app:title="Tentang Aplikasi" />
+        app:title="@string/about_title" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -29,13 +31,16 @@
             android:gravity="center_horizontal"
             android:padding="24dp">
 
+            <!-- App Logo -->
             <ImageView
                 android:id="@+id/ivAppLogo"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
                 android:src="@mipmap/ic_paxel_logo"
-                android:contentDescription="@string/app_name"/>
+                android:contentDescription="@string/app_name"
+                android:layout_marginBottom="8dp"/>
 
+            <!-- App Name -->
             <TextView
                 android:id="@+id/tvAppName"
                 android:layout_width="wrap_content"
@@ -43,8 +48,10 @@
                 android:layout_marginTop="16dp"
                 android:text="@string/app_name"
                 android:textAppearance="@style/TextAppearance.PaxelAR.HeadlineSmall"
-                android:textColor="@color/text_dark_gray"/>
+                android:textColor="@color/text_primary"
+                android:textStyle="bold"/>
 
+            <!-- App Version -->
             <TextView
                 android:id="@+id/tvAppVersion"
                 android:layout_width="wrap_content"
@@ -52,13 +59,20 @@
                 android:layout_marginTop="4dp"
                 android:text="@string/version_info"
                 android:textAppearance="@style/TextAppearance.PaxelAR.BodyMedium"
-                android:textColor="@color/text_medium_gray"/>
+                android:textColor="@color/text_secondary"/>
 
+            <!-- App Description Card -->
             <com.google.android.material.card.MaterialCardView
                 style="@style/Widget.PaxelAR.CardView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp">
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/card_background"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeColor="@color/outline_variant"
+                app:strokeWidth="1dp">
 
                 <TextView
                     android:layout_width="match_parent"
@@ -66,24 +80,97 @@
                     android:padding="16dp"
                     android:text="@string/app_description"
                     android:textAppearance="@style/TextAppearance.PaxelAR.BodyMedium"
-                    android:lineSpacingExtra="6dp"/>
+                    android:textColor="@color/text_primary"
+                    android:lineSpacingExtra="4dp"
+                    android:justificationMode="inter_word"
+                    tools:targetApi="o"/>
 
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Features Card -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.PaxelAR.CardView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardBackgroundColor="@color/primary_container"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Fitur Unggulan"
+                        android:textAppearance="@style/TextAppearance.PaxelAR.TitleMedium"
+                        android:textColor="@color/on_primary_container"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="• Pengukuran AR yang akurat dan real-time\n• Interface yang mudah dan intuitif\n• Riwayat pengukuran tersimpan otomatis\n• Estimasi kategori ukuran paket\n• Export data ke format CSV\n• Dukungan foto untuk dokumentasi"
+                        android:textAppearance="@style/TextAppearance.PaxelAR.BodyMedium"
+                        android:textColor="@color/on_primary_container"
+                        android:lineSpacingExtra="2dp"/>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Developer Info -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:text="Dikembangkan Oleh Abburizal Chillihyat"
-                android:textAppearance="@style/TextAppearance.PaxelAR.Caption"/>
+                android:text="@string/developer_info"
+                android:textAppearance="@style/TextAppearance.PaxelAR.BodySmall"
+                android:textColor="@color/text_tertiary"
+                android:textStyle="italic"/>
 
+            <!-- Copyright -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="© 2025"
-                android:textAppearance="@style/TextAppearance.PaxelAR.Caption"/>
+                android:text="@string/copyright_info"
+                android:textAppearance="@style/TextAppearance.PaxelAR.Caption"
+                android:textColor="@color/text_tertiary"/>
+
+            <!-- Contact Info (Optional) -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="16dp"
+                android:gravity="center">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPrivacyPolicy"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/privacy_policy"
+                    android:textColor="@color/primary"
+                    android:layout_marginEnd="8dp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnContact"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/contact_support"
+                    android:textColor="@color/primary"
+                    android:layout_marginStart="8dp"/>
+
+            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

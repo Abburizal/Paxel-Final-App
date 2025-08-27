@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -21,24 +20,29 @@ class MeasurementViewModel(private val repository: MeasurementRepository) : View
 
     fun saveMeasurement(measurementResult: MeasurementResult) {
         viewModelScope.launch {
-            repository.insert(measurementResult.toPackageMeasurement())
+            repository.insertMeasurement(measurementResult)
         }
     }
 
-    // [PERBAIKAN] Fungsi ini tidak lagi 'suspend' dan mengembalikan 'Flow'.
-    // Ini adalah cara yang benar untuk mengobservasi data tunggal dari database.
+    /**
+     * Get measurement by ID as Flow for reactive UI updates
+     */
     fun getMeasurementById(id: Long): Flow<MeasurementResult?> {
-        return repository.getMeasurementById(id).map { it?.toMeasurementResult() }
+        return repository.getMeasurementById(id)
     }
 
+    /**
+     * Get all measurements as MeasurementResult for UI consistency
+     */
     fun getAllMeasurements(): Flow<List<MeasurementResult>> {
-        return repository.getAllMeasurements().map { packageMeasurements ->
-            packageMeasurements.map { it.toMeasurementResult() }
-        }
+        return repository.getAllMeasurements()
     }
 
+    /**
+     * Get all measurements as PackageMeasurement (direct from database)
+     */
     fun getAllPackageMeasurements(): Flow<List<PackageMeasurement>> {
-        return repository.getAllMeasurements()
+        return repository.getAllPackageMeasurements()
     }
 
     fun deleteMeasurementById(id: Long) {
@@ -47,7 +51,6 @@ class MeasurementViewModel(private val repository: MeasurementRepository) : View
         }
     }
 
-    // [PERBAIKAN] Tambahkan fungsi ini untuk HistoryActivity
     fun deleteAllMeasurements() {
         viewModelScope.launch {
             repository.deleteAllMeasurements()
@@ -56,29 +59,72 @@ class MeasurementViewModel(private val repository: MeasurementRepository) : View
 
     fun updateMeasurement(measurementResult: MeasurementResult) {
         viewModelScope.launch {
-            repository.update(measurementResult.toPackageMeasurement())
+            repository.updateMeasurement(measurementResult)
         }
     }
 
     fun exportToCSV() {
         viewModelScope.launch {
-            val csvHeader = "ID,Package Name,Declared Size,Width(cm),Height(cm),Depth(cm),Volume(cm³),Timestamp,Has Photo,Validated\n"
-            val csvContent = StringBuilder(csvHeader)
-            val measurementList = repository.getAllMeasurements().first()
+            try {
+                val csvHeader = "ID,Package Name,Declared Size,Width(cm),Height(cm),Depth(cm),Volume(cm³),Timestamp,Has Photo,Validated,Category,Estimated Price\n"
+                val csvContent = StringBuilder(csvHeader)
+                val measurementList = repository.getAllPackageMeasurements().first()
 
-            measurementList.forEach { measurement ->
-                csvContent.append("${measurement.id},")
-                csvContent.append("\"${measurement.packageName}\",")
-                csvContent.append("\"${measurement.declaredSize}\",")
-                csvContent.append("${String.format("%.2f", measurement.width * 100)},")
-                csvContent.append("${String.format("%.2f", measurement.height * 100)},")
-                csvContent.append("${String.format("%.2f", measurement.depth * 100)},")
-                csvContent.append("${String.format("%.2f", measurement.volume * 1_000_000)},")
-                csvContent.append("${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(java.util.Date(measurement.timestamp))},")
-                csvContent.append("${if (measurement.imagePath != null) "Yes" else "No"},")
-                csvContent.append("${measurement.isValidated}\n")
+                measurementList.forEach { measurement ->
+                    csvContent.append("${measurement.id},")
+                    csvContent.append("\"${measurement.packageName.replace("\"", "\"\"")}\",")
+                    csvContent.append("\"${measurement.declaredSize.replace("\"", "\"\"")}\",")
+                    csvContent.append("${String.format("%.2f", measurement.width * 100)},")
+                    csvContent.append("${String.format("%.2f", measurement.height * 100)},")
+                    csvContent.append("${String.format("%.2f", measurement.depth * 100)},")
+                    csvContent.append("${String.format("%.2f", measurement.volume * 1_000_000)},")
+                    csvContent.append("${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(java.util.Date(measurement.timestamp))},")
+                    csvContent.append("${if (measurement.imagePath != null) "Yes" else "No"},")
+                    csvContent.append("${measurement.isValidated},")
+                    csvContent.append("\"${measurement.packageSizeCategory.replace("\"", "\"\"")}\",")
+                    csvContent.append("${measurement.estimatedPrice}\n")
+                }
+                _csvExportResult.emit(csvContent.toString())
+            } catch (e: Exception) {
+                // Handle error - could emit error state or show error message
+                _csvExportResult.emit("")
             }
-            _csvExportResult.emit(csvContent.toString())
         }
+    }
+
+    /**
+     * Search measurements
+     */
+    fun searchMeasurements(query: String): Flow<List<MeasurementResult>> {
+        return repository.searchMeasurements(query)
+    }
+
+    /**
+     * Get measurements by category
+     */
+    fun getMeasurementsByCategory(category: String): Flow<List<MeasurementResult>> {
+        return repository.getMeasurementsByCategory(category)
+    }
+
+    /**
+     * Get measurements with photos
+     */
+    fun getMeasurementsWithPhotos(): Flow<List<MeasurementResult>> {
+        return repository.getMeasurementsWithPhotos()
+    }
+
+    /**
+     * Get measurement statistics
+     */
+    fun getMeasurementCount() = viewModelScope.launch {
+        repository.getMeasurementCount()
+    }
+
+    fun getAverageVolume() = viewModelScope.launch {
+        repository.getAverageVolume()
+    }
+
+    fun getAveragePrice() = viewModelScope.launch {
+        repository.getAveragePrice()
     }
 }

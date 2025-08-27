@@ -3,6 +3,9 @@ package com.paxel.arspacescan.data.local
 import androidx.room.TypeConverter
 import java.util.Date
 
+/**
+ * Room type converters for complex data types
+ */
 class Converters {
 
     @TypeConverter
@@ -13,5 +16,15 @@ class Converters {
     @TypeConverter
     fun dateToTimestamp(date: Date?): Long? {
         return date?.time
+    }
+
+    @TypeConverter
+    fun fromBoolean(value: Boolean): Int {
+        return if (value) 1 else 0
+    }
+
+    @TypeConverter
+    fun toBoolean(value: Int): Boolean {
+        return value != 0
     }
 }

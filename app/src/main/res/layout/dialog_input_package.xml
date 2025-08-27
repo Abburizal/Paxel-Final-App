@@ -4,11 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_bottom_sheet"
+    android:background="@drawable/bg_bottom_sheet_dialog"
     android:orientation="vertical"
     android:padding="24dp"
     tools:context=".ui.main.MainActivity">
 
+    <!-- Handle Bar -->
     <View
         android:layout_width="32dp"
         android:layout_height="4dp"
@@ -16,21 +17,31 @@
         android:layout_marginBottom="16dp"
         android:background="@drawable/bg_handle" />
 
+    <!-- Dialog Title -->
     <TextView
         android:id="@+id/tvDialogTitle"
-        style="@style/TextAppearance.PaxelAR.TitleMedium"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
-        android:text="@string/package_name_title"
-        android:textColor="@color/text_primary" />
+        android:text="@string/input_package_name"
+        android:textColor="@color/text_primary"
+        android:fontFamily="@font/poppins_semibold"
+        android:textSize="18sp" />
 
+    <!-- Text Input Field -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilPackageName"
-        style="@style/Widget.PaxelAR.TextInputLayout"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/package_name_hint">
+        android:hint="@string/package_name_hint"
+        app:boxStrokeColor="@color/primary"
+        app:boxStrokeWidth="2dp"
+        app:boxCornerRadiusTopStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp"
+        app:hintTextColor="@color/text_secondary">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etPackageName"
@@ -38,10 +49,17 @@
             android:layout_height="wrap_content"
             android:inputType="textCapWords"
             android:maxLines="1"
-            android:minHeight="48dp" />
+            android:minHeight="56dp"
+            android:text="@string/default_package_name"
+            android:textColor="@color/text_primary"
+            android:fontFamily="@font/poppins_regular"
+            android:textSize="16sp"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="16dp" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- Button Container -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -49,21 +67,32 @@
         android:gravity="end"
         android:orientation="horizontal">
 
+        <!-- Cancel Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCancel"
-            style="@style/Widget.PaxelAR.Button.Text"
+            style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_marginEnd="8dp"
-            android:text="@string/cancel" />
+            android:text="@string/cancel"
+            android:textColor="@color/text_secondary"
+            android:fontFamily="@font/poppins_medium"
+            android:textSize="16sp"
+            app:cornerRadius="12dp" />
 
+        <!-- OK Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSubmit"
-            style="@style/Widget.PaxelAR.Button"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:text="@string/ok"
-            app:icon="@drawable/ic_arrow_forward" />
+            android:textColor="@color/white"
+            android:fontFamily="@font/poppins_semibold"
+            android:textSize="16sp"
+            android:backgroundTint="@color/primary"
+            app:cornerRadius="12dp"
+            app:icon="@drawable/ic_arrow_forward"
+            app:iconTint="@color/white" />
     </LinearLayout>
 
 </LinearLayout>
