@@ -54,6 +54,18 @@ class HistoryActivity : AppCompatActivity() {
         setupRecyclerView()
         setupSearch()
         observeViewModel()
+
+        val btnStartFirstMeasurement = findViewById<com.google.android.material.button.MaterialButton>(R.id.btnStartFirstMeasurement)
+        btnStartFirstMeasurement.setOnClickListener {
+            val intent = Intent(this, com.paxel.arspacescan.ui.main.MainActivity::class.java)
+            startActivity(intent)
+        }
+
+        val fabNewMeasurement = findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.fabNewMeasurement)
+        fabNewMeasurement.setOnClickListener {
+            val intent = Intent(this, com.paxel.arspacescan.ui.main.MainActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun setupToolbar() {

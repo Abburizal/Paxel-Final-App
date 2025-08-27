@@ -1,69 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- ========================= -->
-    <!-- BASE APPLICATION THEME   -->
-    <!-- ========================= -->
-
-    <style name="Base.Theme.PaxelARValidator" parent="Theme.Material3.DayNight">
-        <!-- Primary colors -->
+    <style name="Base.Theme.PaxelARValidator" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorOnPrimary">@color/on_primary</item>
         <item name="colorPrimaryContainer">@color/primary_container</item>
         <item name="colorOnPrimaryContainer">@color/on_primary_container</item>
 
-        <!-- Secondary colors -->
         <item name="colorSecondary">@color/secondary</item>
         <item name="colorOnSecondary">@color/on_secondary</item>
         <item name="colorSecondaryContainer">@color/secondary_container</item>
         <item name="colorOnSecondaryContainer">@color/on_secondary_container</item>
 
-        <!-- Tertiary colors -->
         <item name="colorTertiary">@color/tertiary</item>
         <item name="colorOnTertiary">@color/on_tertiary</item>
         <item name="colorTertiaryContainer">@color/tertiary_container</item>
         <item name="colorOnTertiaryContainer">@color/on_tertiary_container</item>
 
-        <!-- Error colors -->
         <item name="colorError">@color/error</item>
         <item name="colorOnError">@color/on_error</item>
         <item name="colorErrorContainer">@color/error_container</item>
         <item name="colorOnErrorContainer">@color/on_error_container</item>
 
-        <!-- Background colors -->
-        <item name="android:colorBackground">@color/background</item>
-        <item name="colorOnBackground">@color/on_background</item>
+        <item name="android:colorBackground">@color/white</item>
+        <item name="colorOnBackground">@color/black</item>
         <item name="colorSurface">@color/surface</item>
         <item name="colorOnSurface">@color/on_surface</item>
         <item name="colorSurfaceVariant">@color/surface_variant</item>
         <item name="colorOnSurfaceVariant">@color/on_surface_variant</item>
 
-        <!-- Outline colors -->
-        <item name="colorOutline">@color/outline</item>
-        <item name="colorOutlineVariant">@color/outline_variant</item>
+        <item name="android:statusBarColor">@color/primary_dark</item>
+        <item name="android:navigationBarColor">@color/surface</item>
 
-        <!-- Status bar -->
-        <item name="android:statusBarColor">@color/primary</item>
-        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:fontFamily">@font/poppins</item>
 
-        <!-- Widget overrides -->
-        <item name="materialCardViewStyle">@style/Widget.PaxelAR.CardView</item>
-        <item name="materialButtonStyle">@style/Widget.PaxelAR.Button</item>
-        <item name="toolbarStyle">@style/Widget.PaxelAR.Toolbar</item>
+        <item name="bottomSheetDialogTheme">@style/AppBottomSheetDialogTheme</item>
     </style>
 
-    <!-- Main Application theme -->
     <style name="Theme.PaxelARValidator" parent="Base.Theme.PaxelARValidator" />
 
-    <!-- Splash Screen Theme -->
     <style name="Theme.PaxelARValidator.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/primary</item>
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_paxel_logo1</item>
         <item name="windowSplashScreenAnimationDuration">1000</item>
         <item name="postSplashScreenTheme">@style/Theme.PaxelARValidator</item>
     </style>
 
-    <!-- NoActionBar Theme (for AR activities, etc.) -->
     <style name="Theme.PaxelARValidator.NoActionBar" parent="Theme.PaxelARValidator">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
@@ -73,13 +55,19 @@
         <item name="android:fitsSystemWindows">true</item>
     </style>
 
-    <!-- Alternative: Fullscreen theme for AR -->
     <style name="Theme.PaxelARValidator.Fullscreen" parent="Theme.PaxelARValidator.NoActionBar">
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowIsTranslucent">false</item>
-        <item name="android:windowIsFloating">false</item>
-        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
+    <style name="AppBottomSheetDialogTheme" parent="Theme.Material3.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/AppModalStyle</item>
+    </style>
+
+    <style name="AppModalStyle" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="android:background">@drawable/bg_bottom_sheet_dialog</item>
     </style>
 
 </resources>

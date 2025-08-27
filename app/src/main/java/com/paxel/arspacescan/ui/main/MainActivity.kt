@@ -151,27 +151,69 @@ class MainActivity : AppCompatActivity(), PackageInputDialog.OnPackageInputListe
     }
 
     /**
-     * Implementation of OnPackageInputListener
+     * ✅ ENHANCED: Implementation of OnPackageInputListener with comprehensive logging
      */
     override fun onPackageInput(packageName: String) {
         try {
-            Log.d(TAG, "Package input received: $packageName")
+            Log.d(TAG, "=== PACKAGE INPUT RECEIVED ===")
+            Log.d(TAG, "Package name received: '$packageName'")
+            Log.d(TAG, "Package name length: ${packageName.length}")
+            Log.d(TAG, "Package name isEmpty: ${packageName.isEmpty()}")
+            Log.d(TAG, "Package name isBlank: ${packageName.isBlank()}")
+
+            // ✅ VALIDATION: Ensure we have a valid package name
+            if (packageName.isBlank()) {
+                Log.w(TAG, "Received blank package name, using default")
+                val defaultName = "Paket Default"
+                navigateToAR(defaultName)
+            } else {
+                Log.d(TAG, "Using received package name: '$packageName'")
+                navigateToAR(packageName)
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error handling package input", e)
+            showError("Gagal memulai pengukuran: ${e.message}")
+
+            // ✅ FALLBACK: Try with default name
+            try {
+                val defaultName = "Paket Default"
+                Log.d(TAG, "Attempting fallback with default name: '$defaultName'")
+                navigateToAR(defaultName)
+            } catch (fallbackError: Exception) {
+                Log.e(TAG, "Even fallback navigation failed", fallbackError)
+                showError("Gagal memulai pengukuran bahkan dengan nama default")
+            }
+        }
+    }
+
+    /**
+     * ✅ NEW: Separate navigation method for better error handling
+     */
+    private fun navigateToAR(packageName: String) {
+        try {
+            Log.d(TAG, "=== NAVIGATING TO AR ===")
+            Log.d(TAG, "Final package name for navigation: '$packageName'")
 
             NavigationManager.navigateToARMeasurement(
                 context = this,
                 packageName = packageName
             )
+
+            Log.d(TAG, "Navigation to AR measurement initiated successfully")
+
         } catch (e: Exception) {
-            Log.e(TAG, "Error handling package input", e)
-            showError("Gagal memulai pengukuran: ${e.message}")
+            Log.e(TAG, "Navigation to AR measurement failed", e)
+            throw e
         }
     }
 
     private fun showError(message: String) {
-        Log.e(TAG, message)
+        Log.e(TAG, "Showing error: $message")
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 
+    // ✅ ENHANCED: Lifecycle logging for debugging
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "MainActivity resumed")

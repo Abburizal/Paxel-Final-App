@@ -86,11 +86,13 @@
     <string name="tidak_ditentukan">Tidak ditentukan</string>
 
     <!-- About Information -->
-    <string name="developer_info">Dikembangkan oleh Abburizal Chillihyat 10118122</string>
+    <string name="developer_info">Dikembangkan oleh Abburizal Chillihyat</string>
     <string name="copyright_info">© 2025 Paxel. Semua hak dilindungi.</string>
     <string name="privacy_policy">Kebijakan Privasi</string>
     <string name="contact_support">Hubungi Dukungan</string>
-    <string name="app_description">Paxel AR Validator adalah aplikasi inovatif yang menggunakan teknologi Augmented Reality (AR) untuk mengukur dimensi paket dengan akurasi tinggi. Dengan teknologi canggih ini, Anda dapat mengukur panjang, lebar, tinggi, dan volume paket secara real-time hanya menggunakan kamera smartphone. Aplikasi ini dilengkapi dengan fitur estimasi harga pengiriman otomatis, penyimpanan riwayat pengukuran, dan kemampuan export data untuk memudahkan pengelolaan logistik Anda. Solusi digital yang sempurna untuk optimalisasi proses pengiriman paket di era modern.</string>
+    <string name="app_description">
+Paxel AR Validator adalah aplikasi berbasis Augmented Reality (AR) untuk mengukur dimensi paket secara akurat dan real-time menggunakan kamera smartphone. Aplikasi ini menyediakan estimasi biaya pengiriman otomatis, riwayat pengukuran, serta fitur ekspor data untuk mendukung efisiensi dan pengelolaan logistik modern.
+</string>
 
     <!-- Common Actions -->
     <string name="ok">OK</string>
@@ -129,4 +131,17 @@
     <!-- Additional Icon Resource -->
     <string name="ic_check">Centang</string>
 
+    <!-- AR Measurement UI Strings -->
+    <string name="move_device_instruction">Gerakkan perangkat untuk mendeteksi permukaan</string>
+    <string name="mark_first_point_instruction">Ketuk untuk menandai titik pertama alas paket</string>
+    <string name="warning_not_precise">Peringatan: Sudut tidak presisi, hasil mungkin kurang akurat</string>
+    <string name="undo_last_point">Batalkan titik terakhir</string>
+    <string name="reset_measurement">Reset pengukuran</string>
+    <string name="take_photo">Ambil foto</string>
+    <string name="continue_to_result">Lanjut ke Hasil</string>
+
+    <!-- Icon Content Descriptions -->
+    <string name="icon_ar_measurement">AR Measurement Icon</string>
+    <string name="icon_price_estimation">Price Estimation Icon</string>
+    <string name="icon_history_tracking">History Tracking Icon</string>
 </resources>

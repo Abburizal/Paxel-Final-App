@@ -17,6 +17,7 @@ import java.util.Locale
 
 /**
  * Object singleton untuk menangani ekspor data pengukuran ke file CSV.
+ * ✅ FIXED: API 24+ compatibility untuk file operations
  */
 object CsvExporter {
 
@@ -39,10 +40,10 @@ object CsvExporter {
                 val declaredSize = escapeCsvValue(measurement.declaredSize)
 
                 // Konversi dari meter ke sentimeter dengan 2 angka desimal
-                val depthCm = String.format("%.2f", measurement.depth * 100)
-                val widthCm = String.format("%.2f", measurement.width * 100)
-                val heightCm = String.format("%.2f", measurement.height * 100)
-                val volumeCm3 = String.format("%.2f", measurement.volume * 1_000_000)
+                val depthCm = String.format(Locale.US, "%.2f", measurement.depth * 100)
+                val widthCm = String.format(Locale.US, "%.2f", measurement.width * 100)
+                val heightCm = String.format(Locale.US, "%.2f", measurement.height * 100)
+                val volumeCm3 = String.format(Locale.US, "%.2f", measurement.volume * 1_000_000)
 
                 val categoryName = escapeCsvValue(measurement.packageSizeCategory)
                 val imagePath = escapeCsvValue(measurement.imagePath ?: "N/A")
@@ -71,6 +72,7 @@ object CsvExporter {
     }
 
     /**
+     * ✅ FIXED: API 24+ compatible file writing
      * Mengekspor data ke file CSV dan membagikannya menggunakan share intent.
      */
     fun exportAndShare(context: Context, measurements: List<PackageMeasurement>, fileName: String) {
@@ -87,14 +89,8 @@ object CsvExporter {
             // Simpan file di cache directory agar tidak butuh permission storage
             val file = File(context.cacheDir, "$fileName.csv")
 
-            // PERBAIKAN: Menggunakan FileOutputStream + OutputStreamWriter
-            // yang kompatible dengan API 24, mengganti FileWriter(file, Charsets.UTF_8)
-            // yang membutuhkan API 33+
-            FileOutputStream(file).use { fileOutputStream ->
-                OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8).use { writer ->
-                    writer.write(csvContent)
-                }
-            }
+            // ✅ FIXED: Compatible with API 24+ (instead of FileWriter with charset)
+            saveCsvContentToFile(file, csvContent)
 
             if (!file.exists() || file.length() == 0L) {
                 throw Exception("File tidak berhasil dibuat atau kosong")
@@ -136,7 +132,27 @@ object CsvExporter {
     }
 
     /**
+     * ✅ NEW: Separate method for API 24+ compatible file writing
+     */
+    private fun saveCsvContentToFile(file: File, csvContent: String) {
+        try {
+            // Use FileOutputStream + OutputStreamWriter for API 24+ compatibility
+            FileOutputStream(file).use { fileOutputStream ->
+                OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8).use { writer ->
+                    writer.write(csvContent)
+                    writer.flush()
+                }
+            }
+            Log.d(TAG, "CSV content written to file successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error writing CSV content to file", e)
+            throw e
+        }
+    }
+
+    /**
      * Save CSV file to a specific location (for advanced usage)
+     * ✅ FIXED: API 24+ compatibility
      */
     fun saveCsvToFile(context: Context, measurements: List<PackageMeasurement>, filePath: String): Boolean {
         return try {
@@ -145,13 +161,8 @@ object CsvExporter {
 
             file.parentFile?.mkdirs() // Create directories if they don't exist
 
-            // PERBAIKAN: Menggunakan FileOutputStream + OutputStreamWriter
-            // yang kompatible dengan API 24
-            FileOutputStream(file).use { fileOutputStream ->
-                OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8).use { writer ->
-                    writer.write(csvContent)
-                }
-            }
+            // ✅ FIXED: API 24+ compatible file writing
+            saveCsvContentToFile(file, csvContent)
 
             Log.d(TAG, "CSV saved to: $filePath")
             true
@@ -250,6 +261,71 @@ object CsvExporter {
             sizeInBytes < 1024 -> "$sizeInBytes B"
             sizeInBytes < 1024 * 1024 -> "${sizeInBytes / 1024} KB"
             else -> "${sizeInBytes / (1024 * 1024)} MB"
+        }
+    }
+
+    /**
+     * ✅ NEW: Batch export with progress callback
+     */
+    fun exportLargeDataset(
+        context: Context,
+        measurements: List<PackageMeasurement>,
+        fileName: String,
+        progressCallback: ((Int, Int) -> Unit)? = null
+    ) {
+        try {
+            Log.d(TAG, "Starting large dataset export: ${measurements.size} measurements")
+
+            val csvContent = StringBuilder()
+            csvContent.appendLine(CSV_HEADER)
+
+            val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+
+            measurements.forEachIndexed { index, measurement ->
+                try {
+                    // Progress callback
+                    progressCallback?.invoke(index + 1, measurements.size)
+
+                    val timestamp = sdf.format(Date(measurement.timestamp))
+                    val packageName = escapeCsvValue(measurement.packageName)
+                    val declaredSize = escapeCsvValue(measurement.declaredSize)
+
+                    val depthCm = String.format(Locale.US, "%.2f", measurement.depth * 100)
+                    val widthCm = String.format(Locale.US, "%.2f", measurement.width * 100)
+                    val heightCm = String.format(Locale.US, "%.2f", measurement.height * 100)
+                    val volumeCm3 = String.format(Locale.US, "%.2f", measurement.volume * 1_000_000)
+
+                    val categoryName = escapeCsvValue(measurement.packageSizeCategory)
+                    val imagePath = escapeCsvValue(measurement.imagePath ?: "N/A")
+                    val isValidated = if (measurement.isValidated) "Ya" else "Tidak"
+
+                    csvContent.appendLine(
+                        "\"$timestamp\",\"$packageName\",\"$declaredSize\",$depthCm,$widthCm,$heightCm,$volumeCm3,\"$categoryName\",${measurement.estimatedPrice},\"$imagePath\",\"$isValidated\""
+                    )
+                } catch (e: Exception) {
+                    Log.w(TAG, "Error processing measurement ${index}: ${measurement.id}", e)
+                }
+            }
+
+            // Save and share
+            val file = File(context.cacheDir, "$fileName.csv")
+            saveCsvContentToFile(file, csvContent.toString())
+
+            // Share the file
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/csv"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                putExtra(Intent.EXTRA_SUBJECT, "Ekspor Data Besar: $fileName")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+
+            context.startActivity(Intent.createChooser(shareIntent, "Bagikan File CSV"))
+            Toast.makeText(context, "Ekspor dataset besar berhasil!", Toast.LENGTH_LONG).show()
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during large dataset export", e)
+            Toast.makeText(context, "Gagal mengekspor dataset: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 }

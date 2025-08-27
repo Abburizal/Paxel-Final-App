@@ -30,7 +30,15 @@ class ARMeasurementViewModel : ViewModel() {
     val navigationEvent = _navigationEvent.asSharedFlow()
 
     private val _warningMessage = MutableStateFlow<String?>(null)
-    val warningMessage = _warningMessage.asStateFlow()
+    val warningMessage = _warningMessage.asSharedFlow()
+
+    // Variabel untuk menyimpan nama paket
+    private var packageName: String = "Paket"
+
+    // Fungsi untuk mengatur nama paket dari Activity
+    fun setPackageName(name: String) {
+        packageName = name
+    }
 
     fun handleArTap(anchorNode: AnchorNode, context: android.content.Context) {
         try {
@@ -122,23 +130,25 @@ class ARMeasurementViewModel : ViewModel() {
 
     private fun completeMeasurement(baseCorners: List<AnchorNode>, height: Float) {
         try {
+            // VALIDASI: Nama paket harus tidak kosong
+            if (packageName.isBlank()) {
+                showWarningMessage("Nama paket tidak valid. Silakan ulangi pengukuran.")
+                Log.w(TAG, "Measurement aborted: package name is blank")
+                return
+            }
             Log.d(TAG, "Completing measurement with ${baseCorners.size} corners and height $height")
-
             val result = MeasurementCalculator.calculate(baseCorners.map { it.worldPosition }, height)
-
             if (!result.isValid()) {
                 Log.w(TAG, "Invalid measurement result: $result")
                 showWarningMessage("Hasil pengukuran tidak valid, coba lagi")
                 return
             }
-
             _uiState.update {
                 it.copy(
                     step = MeasurementStep.COMPLETED,
                     instructionTextId = R.string.instruction_measurement_complete,
                     finalResult = PackageMeasurement(
-                        // Basic info akan diisi nanti dari intent
-                        packageName = "",
+                        packageName = this.packageName,
                         declaredSize = "",
                         width = result.width,
                         height = result.height,
@@ -150,7 +160,6 @@ class ARMeasurementViewModel : ViewModel() {
                     qualityScore = result.getConfidence()
                 )
             }
-
             clearWarningMessage()
             Log.d(TAG, "Measurement completed successfully")
 
@@ -165,8 +174,7 @@ class ARMeasurementViewModel : ViewModel() {
             _uiState.update { currentState ->
                 if (currentState.corners.isEmpty()) return@update currentState
 
-                // PERBAIKAN: Menggunakan removeAt(size-1) yang kompatible dengan API 24
-                // Mengganti removeLast() yang hanya tersedia di API 35+
+                // ✅ FIXED: Compatible with API 24+ (instead of removeLast())
                 val newCorners = currentState.corners.toMutableList()
                 if (newCorners.isNotEmpty()) {
                     newCorners.removeAt(newCorners.size - 1)

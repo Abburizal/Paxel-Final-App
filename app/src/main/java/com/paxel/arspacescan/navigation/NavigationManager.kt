@@ -12,7 +12,7 @@ import com.paxel.arspacescan.ui.measurement.ARMeasurementActivity
 import com.paxel.arspacescan.ui.result.ResultActivity
 
 /**
- * Centralized Navigation Manager
+ * ✅ ENHANCED: Centralized Navigation Manager with comprehensive logging and error handling
  */
 object NavigationManager {
 
@@ -39,6 +39,9 @@ object NavigationManager {
         clearTask: Boolean = false
     ) {
         try {
+            Log.d(TAG, "=== NAVIGATING TO HOME ===")
+            Log.d(TAG, "Clear task: $clearTask")
+
             val intent = Intent(context, MainActivity::class.java).apply {
                 if (clearTask) {
                     flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
@@ -46,7 +49,7 @@ object NavigationManager {
             }
 
             context.startActivity(intent)
-            Log.d(TAG, "Navigation to MainActivity successful, clearTask=$clearTask")
+            Log.d(TAG, "Navigation to MainActivity successful")
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to navigate to MainActivity", e)
@@ -55,7 +58,7 @@ object NavigationManager {
     }
 
     /**
-     * Navigate to AR Measurement Activity
+     * ✅ ENHANCED: Navigate to AR Measurement Activity with comprehensive logging
      */
     fun navigateToARMeasurement(
         context: Context,
@@ -63,13 +66,39 @@ object NavigationManager {
         declaredSize: String? = null
     ) {
         try {
-            val intent = Intent(context, ARMeasurementActivity::class.java).apply {
-                putExtra(Extras.PACKAGE_NAME, packageName)
-                declaredSize?.let { putExtra(Extras.DECLARED_SIZE, it) }
+            Log.d(TAG, "=== NAVIGATING TO AR MEASUREMENT ===")
+            Log.d(TAG, "Package name: '$packageName'")
+            Log.d(TAG, "Declared size: '$declaredSize'")
+            Log.d(TAG, "Package name length: ${packageName.length}")
+            Log.d(TAG, "Package name isEmpty: ${packageName.isEmpty()}")
+            Log.d(TAG, "Package name isBlank: ${packageName.isBlank()}")
+
+            // ✅ VALIDATION: Ensure we have a valid package name
+            val validatedPackageName = if (packageName.isBlank()) {
+                Log.w(TAG, "Package name is blank, using default")
+                "Paket Default"
+            } else {
+                Log.d(TAG, "Using provided package name: '$packageName'")
+                packageName.trim()
             }
 
+            Log.d(TAG, "Final validated package name: '$validatedPackageName'")
+
+            val intent = Intent(context, ARMeasurementActivity::class.java).apply {
+                putExtra(Extras.PACKAGE_NAME, validatedPackageName)
+                declaredSize?.let {
+                    Log.d(TAG, "Adding declared size to intent: '$it'")
+                    putExtra(Extras.DECLARED_SIZE, it)
+                }
+            }
+
+            // ✅ LOGGING: Log intent contents
+            Log.d(TAG, "Intent created with extras:")
+            Log.d(TAG, "  - PACKAGE_NAME: '${intent.getStringExtra(Extras.PACKAGE_NAME)}'")
+            Log.d(TAG, "  - DECLARED_SIZE: '${intent.getStringExtra(Extras.DECLARED_SIZE)}'")
+
             context.startActivity(intent)
-            Log.d(TAG, "Navigation to ARMeasurementActivity successful, package='$packageName'")
+            Log.d(TAG, "Navigation to ARMeasurementActivity initiated successfully")
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to navigate to ARMeasurementActivity", e)
@@ -78,7 +107,7 @@ object NavigationManager {
     }
 
     /**
-     * Navigate to Result Activity with new measurement
+     * ✅ ENHANCED: Navigate to Result Activity with new measurement
      */
     fun navigateToResult(
         context: Context,
@@ -89,16 +118,52 @@ object NavigationManager {
         packageSizeCategory: String = "Tidak Diketahui"
     ) {
         try {
+            Log.d(TAG, "=== NAVIGATING TO RESULT ===")
+            Log.d(TAG, "MeasurementResult: $measurementResult")
+            Log.d(TAG, "Package name parameter: '$packageName'")
+            Log.d(TAG, "Declared size parameter: '$declaredSize'")
+            Log.d(TAG, "Estimated price: $estimatedPrice")
+            Log.d(TAG, "Package size category: '$packageSizeCategory'")
+
+            // ✅ VALIDATION: Ensure package name is properly handled
+            val validatedPackageName = when {
+                !packageName.isNullOrBlank() -> {
+                    Log.d(TAG, "Using provided package name: '$packageName'")
+                    packageName.trim()
+                }
+                measurementResult.packageName.isNotBlank() -> {
+                    Log.d(TAG, "Using package name from measurement result: '${measurementResult.packageName}'")
+                    measurementResult.packageName
+                }
+                else -> {
+                    Log.d(TAG, "Using fallback package name")
+                    "Paket Default"
+                }
+            }
+
+            Log.d(TAG, "Final validated package name: '$validatedPackageName'")
+
             val intent = Intent(context, ResultActivity::class.java).apply {
                 putExtra(Extras.MEASUREMENT_RESULT, measurementResult)
-                packageName?.let { putExtra(Extras.PACKAGE_NAME, it) }
-                declaredSize?.let { putExtra(Extras.DECLARED_SIZE, it) }
+                putExtra(Extras.PACKAGE_NAME, validatedPackageName)
+                declaredSize?.let {
+                    Log.d(TAG, "Adding declared size: '$it'")
+                    putExtra(Extras.DECLARED_SIZE, it)
+                }
                 putExtra(Extras.ESTIMATED_PRICE, estimatedPrice)
                 putExtra(Extras.PACKAGE_SIZE_CATEGORY, packageSizeCategory)
             }
 
+            // ✅ LOGGING: Log intent contents for debugging
+            Log.d(TAG, "Intent created with extras:")
+            Log.d(TAG, "  - MEASUREMENT_RESULT: ${intent.getParcelableExtra<MeasurementResult>(Extras.MEASUREMENT_RESULT)}")
+            Log.d(TAG, "  - PACKAGE_NAME: '${intent.getStringExtra(Extras.PACKAGE_NAME)}'")
+            Log.d(TAG, "  - DECLARED_SIZE: '${intent.getStringExtra(Extras.DECLARED_SIZE)}'")
+            Log.d(TAG, "  - ESTIMATED_PRICE: ${intent.getIntExtra(Extras.ESTIMATED_PRICE, -1)}")
+            Log.d(TAG, "  - PACKAGE_SIZE_CATEGORY: '${intent.getStringExtra(Extras.PACKAGE_SIZE_CATEGORY)}'")
+
             context.startActivity(intent)
-            Log.d(TAG, "Navigation to ResultActivity successful, measurementId=${measurementResult.id}")
+            Log.d(TAG, "Navigation to ResultActivity initiated successfully")
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to navigate to ResultActivity with new measurement", e)
@@ -114,12 +179,15 @@ object NavigationManager {
         measurementId: Long
     ) {
         try {
+            Log.d(TAG, "=== NAVIGATING TO STORED RESULT ===")
+            Log.d(TAG, "Measurement ID: $measurementId")
+
             val intent = Intent(context, ResultActivity::class.java).apply {
                 putExtra(Extras.MEASUREMENT_ID, measurementId)
             }
 
             context.startActivity(intent)
-            Log.d(TAG, "Navigation to stored result successful, measurementId=$measurementId")
+            Log.d(TAG, "Navigation to stored result successful")
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to navigate to stored result", e)
@@ -132,6 +200,7 @@ object NavigationManager {
      */
     fun navigateToHistory(context: Context) {
         try {
+            Log.d(TAG, "=== NAVIGATING TO HISTORY ===")
             val intent = Intent(context, HistoryActivity::class.java)
             context.startActivity(intent)
             Log.d(TAG, "Navigation to HistoryActivity successful")
@@ -147,6 +216,7 @@ object NavigationManager {
      */
     fun navigateToAbout(context: Context) {
         try {
+            Log.d(TAG, "=== NAVIGATING TO ABOUT ===")
             val intent = Intent(context, AboutActivity::class.java)
             context.startActivity(intent)
             Log.d(TAG, "Navigation to AboutActivity successful")
@@ -163,40 +233,56 @@ object NavigationManager {
      * Navigate back to home with measurement completion
      */
     fun navigateToHomeAfterMeasurement(context: Context) {
+        Log.d(TAG, "Navigating to home after measurement completion")
         navigateToHome(context, clearTask = true)
-        Log.d(TAG, "Navigation to home after measurement completion")
     }
 
     /**
      * Navigate to new measurement flow from result screen
      */
     fun navigateToNewMeasurementFromResult(context: Context) {
+        Log.d(TAG, "Navigating to new measurement from result screen")
         navigateToHome(context, clearTask = true)
-        Log.d(TAG, "Navigation to new measurement from result screen")
     }
 
     // ===== INTENT VALIDATION UTILITIES =====
 
     /**
-     * Validate intent extras for ARMeasurementActivity
+     * ✅ ENHANCED: Validate intent extras for ARMeasurementActivity
      */
     fun validateARMeasurementIntent(intent: Intent): ValidationResult {
+        Log.d(TAG, "=== VALIDATING AR MEASUREMENT INTENT ===")
+
         val packageName = intent.getStringExtra(Extras.PACKAGE_NAME)
 
+        Log.d(TAG, "Package name from intent: '$packageName'")
+        Log.d(TAG, "Package name isNull: ${packageName == null}")
+        Log.d(TAG, "Package name isEmpty: ${packageName?.isEmpty()}")
+        Log.d(TAG, "Package name isBlank: ${packageName?.isBlank()}")
+
         return when {
-            packageName.isNullOrBlank() -> ValidationResult(
-                isValid = false,
-                error = "Package name is required for AR measurement"
-            )
-            packageName.length > 100 -> ValidationResult(
-                isValid = false,
-                error = "Package name too long"
-            )
-            else -> ValidationResult(
-                isValid = true,
-                packageName = packageName,
-                declaredSize = intent.getStringExtra(Extras.DECLARED_SIZE)
-            )
+            packageName.isNullOrBlank() -> {
+                Log.w(TAG, "Validation failed: Package name is null or blank")
+                ValidationResult(
+                    isValid = false,
+                    error = "Package name is required for AR measurement"
+                )
+            }
+            packageName.length > 100 -> {
+                Log.w(TAG, "Validation failed: Package name too long (${packageName.length} chars)")
+                ValidationResult(
+                    isValid = false,
+                    error = "Package name too long"
+                )
+            }
+            else -> {
+                Log.d(TAG, "Validation successful")
+                ValidationResult(
+                    isValid = true,
+                    packageName = packageName,
+                    declaredSize = intent.getStringExtra(Extras.DECLARED_SIZE)
+                )
+            }
         }
     }
 
@@ -204,6 +290,8 @@ object NavigationManager {
      * Validate intent extras for ResultActivity
      */
     fun validateResultIntent(intent: Intent): ValidationResult {
+        Log.d(TAG, "=== VALIDATING RESULT INTENT ===")
+
         val measurementResult = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra(Extras.MEASUREMENT_RESULT, MeasurementResult::class.java)
         } else {
@@ -212,22 +300,38 @@ object NavigationManager {
         }
 
         val measurementId = intent.getLongExtra(Extras.MEASUREMENT_ID, -1L)
+        val packageName = intent.getStringExtra(Extras.PACKAGE_NAME)
+        val declaredSize = intent.getStringExtra(Extras.DECLARED_SIZE)
+
+        Log.d(TAG, "Measurement result: $measurementResult")
+        Log.d(TAG, "Measurement ID: $measurementId")
+        Log.d(TAG, "Package name: '$packageName'")
+        Log.d(TAG, "Declared size: '$declaredSize'")
 
         return when {
-            measurementResult != null -> ValidationResult(
-                isValid = true,
-                measurementResult = measurementResult,
-                packageName = intent.getStringExtra(Extras.PACKAGE_NAME),
-                declaredSize = intent.getStringExtra(Extras.DECLARED_SIZE)
-            )
-            measurementId > 0 -> ValidationResult(
-                isValid = true,
-                measurementId = measurementId
-            )
-            else -> ValidationResult(
-                isValid = false,
-                error = "Either measurement result or measurement ID is required"
-            )
+            measurementResult != null -> {
+                Log.d(TAG, "Validation successful - using measurement result")
+                ValidationResult(
+                    isValid = true,
+                    measurementResult = measurementResult,
+                    packageName = packageName,
+                    declaredSize = declaredSize
+                )
+            }
+            measurementId > 0 -> {
+                Log.d(TAG, "Validation successful - using measurement ID")
+                ValidationResult(
+                    isValid = true,
+                    measurementId = measurementId
+                )
+            }
+            else -> {
+                Log.w(TAG, "Validation failed - neither measurement result nor ID provided")
+                ValidationResult(
+                    isValid = false,
+                    error = "Either measurement result or measurement ID is required"
+                )
+            }
         }
     }
 
@@ -261,7 +365,7 @@ object NavigationManager {
     // ===== DATA CLASSES =====
 
     /**
-     * Result of intent validation
+     * ✅ ENHANCED: Result of intent validation with comprehensive data
      */
     data class ValidationResult(
         val isValid: Boolean,
@@ -282,6 +386,10 @@ object NavigationManager {
         extras: Map<String, Any> = emptyMap()
     ) {
         try {
+            Log.d(TAG, "=== NAVIGATE WITH ANIMATION ===")
+            Log.d(TAG, "Target: ${targetClass.simpleName}")
+            Log.d(TAG, "Extras: $extras")
+
             val intent = Intent(this, targetClass).apply {
                 extras.forEach { (key, value) ->
                     when (value) {
@@ -303,7 +411,7 @@ object NavigationManager {
                 android.R.anim.slide_out_right
             )
 
-            Log.d(TAG, "Animated navigation to ${targetClass.simpleName}")
+            Log.d(TAG, "Animated navigation to ${targetClass.simpleName} completed")
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed animated navigation to ${targetClass.simpleName}", e)

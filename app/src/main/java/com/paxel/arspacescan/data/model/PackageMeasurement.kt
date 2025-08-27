@@ -12,7 +12,7 @@ data class PackageMeasurement(
     val id: Long = 0,
 
     // Basic package info
-    val packageName: String = "",
+    val packageName: String, // Wajib non-null dan tidak boleh kosong
     val declaredSize: String = "",
 
     // Measurement data - dalam meter

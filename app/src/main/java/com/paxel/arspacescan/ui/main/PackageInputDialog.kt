@@ -5,14 +5,13 @@ import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
-import android.widget.EditText
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputEditText
 import com.paxel.arspacescan.R
 
 class PackageInputDialog : DialogFragment() {
 
-    // Interface untuk mengirimkan data kembali ke activity
     interface OnPackageInputListener {
         fun onPackageInput(packageName: String)
     }
@@ -21,7 +20,7 @@ class PackageInputDialog : DialogFragment() {
 
     companion object {
         const val TAG = "PackageInputDialog"
-        private const val DEFAULT_PACKAGE_NAME = "Paket"
+        private const val DEFAULT_PACKAGE_NAME = "Paket Default"
 
         fun newInstance(): PackageInputDialog {
             return PackageInputDialog()
@@ -44,44 +43,73 @@ class PackageInputDialog : DialogFragment() {
             val inflater = LayoutInflater.from(requireContext())
             val view = inflater.inflate(R.layout.dialog_input_package, null)
 
-            val etPackageName = view.findViewById<EditText>(R.id.etPackageName)
+            // ✅ FIXED: Use correct view type - TextInputEditText instead of EditText
+            val etPackageName = view.findViewById<TextInputEditText>(R.id.etPackageName)
             val btnCancel = view.findViewById<android.view.View>(R.id.btnCancel)
             val btnSubmit = view.findViewById<android.view.View>(R.id.btnSubmit)
 
-            // PERBAIKAN: Menggunakan string langsung tanpa String.format()
-            // Mengganti getString(R.string.default_package_name, DEFAULT_PACKAGE_NAME)
-            // dengan getString(R.string.default_package_name) yang tidak membutuhkan parameter
-            etPackageName.setText(getString(R.string.default_package_name))
+            // ✅ FIXED: Set default text and select all for easy editing
+            etPackageName?.setText(DEFAULT_PACKAGE_NAME)
+            etPackageName?.selectAll()
 
             val dialog = MaterialAlertDialogBuilder(requireContext())
                 .setView(view)
                 .setCancelable(true)
                 .create()
 
-            btnCancel.setOnClickListener {
+            btnCancel?.setOnClickListener {
                 Log.d(TAG, "Cancel button clicked")
                 dialog.dismiss()
             }
 
-            btnSubmit.setOnClickListener {
+            btnSubmit?.setOnClickListener {
                 try {
-                    val packageName = etPackageName.text.toString().trim()
+                    // ✅ FIXED: Proper input handling with comprehensive logging
+                    val rawInput = etPackageName?.text?.toString() ?: ""
+                    val packageName = rawInput.trim()
 
+                    Log.d(TAG, "Submit button clicked")
+                    Log.d(TAG, "Raw input: '$rawInput'")
+                    Log.d(TAG, "Trimmed input: '$packageName'")
+
+                    // ✅ FIXED: Remove problematic validation - allow empty input and use default
                     val finalPackageName = if (packageName.isEmpty()) {
-                        getString(R.string.default_package_name)
+                        Log.d(TAG, "Empty input detected, using default: '$DEFAULT_PACKAGE_NAME'")
+                        DEFAULT_PACKAGE_NAME
                     } else {
+                        Log.d(TAG, "Using user input: '$packageName'")
                         packageName
                     }
 
-                    Log.d(TAG, "Submit button clicked with package name: $finalPackageName")
-                    listener?.onPackageInput(finalPackageName)
-                    dialog.dismiss()
+                    // ✅ FIXED: Always proceed with valid package name
+                    Log.d(TAG, "Final package name: '$finalPackageName'")
+
+                    if (listener != null) {
+                        listener!!.onPackageInput(finalPackageName)
+                        dialog.dismiss()
+                        Log.d(TAG, "Package input sent successfully: '$finalPackageName'")
+                    } else {
+                        Log.e(TAG, "Listener is null - cannot send package input")
+                        // Show error to user
+                        MaterialAlertDialogBuilder(requireContext())
+                            .setTitle("Error Sistem")
+                            .setMessage("Terjadi kesalahan internal. Silakan coba lagi.")
+                            .setPositiveButton("OK", null)
+                            .show()
+                    }
+
                 } catch (e: Exception) {
                     Log.e(TAG, "Error handling submit button click", e)
+                    // Show error to user
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle("Error")
+                        .setMessage("Gagal memproses input: ${e.message}")
+                        .setPositiveButton("OK", null)
+                        .show()
                 }
             }
 
-            // Make background transparent and prevent auto-dismiss on outside touch
+            // ✅ ENHANCED: Better dialog configuration
             dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
             dialog.setCanceledOnTouchOutside(false)
 
@@ -90,41 +118,20 @@ class PackageInputDialog : DialogFragment() {
 
         } catch (e: Exception) {
             Log.e(TAG, "Error creating dialog", e)
-            // Fallback to a simple dialog
+
+            // ✅ ENHANCED: Improved fallback dialog
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Input Nama Paket")
                 .setMessage("Gagal memuat dialog input. Menggunakan nama default.")
-                .setPositiveButton("OK") { _, _ ->
+                .setPositiveButton("Lanjutkan") { _, _ ->
                     listener?.onPackageInput(DEFAULT_PACKAGE_NAME)
                 }
-                .setNegativeButton("Batal", null)
+                .setNegativeButton("Batal") { _, _ ->
+                    // Just dismiss
+                }
+                .setCancelable(false)
                 .create()
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        Log.d(TAG, "Dialog started")
-    }
-
-    override fun onResume() {
-        super.onResume()
-        Log.d(TAG, "Dialog resumed")
-    }
-
-    override fun onPause() {
-        super.onPause()
-        Log.d(TAG, "Dialog paused")
-    }
-
-    override fun onStop() {
-        super.onStop()
-        Log.d(TAG, "Dialog stopped")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d(TAG, "Dialog destroyed")
     }
 
     override fun onDetach() {

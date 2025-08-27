@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_bottom_sheet_dialog"
+    android:background="@color/surface"
     android:orientation="vertical"
     android:padding="24dp"
     tools:context=".ui.main.MainActivity">
@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
         android:text="@string/input_package_name"
-        android:textColor="@color/text_primary"
+        android:textColor="@color/on_surface"
         android:fontFamily="@font/poppins_semibold"
         android:textSize="18sp" />
 
@@ -36,12 +36,12 @@
         android:layout_height="wrap_content"
         android:hint="@string/package_name_hint"
         app:boxStrokeColor="@color/primary"
+        app:hintTextColor="@color/on_surface_variant"
         app:boxStrokeWidth="2dp"
         app:boxCornerRadiusTopStart="12dp"
         app:boxCornerRadiusTopEnd="12dp"
         app:boxCornerRadiusBottomStart="12dp"
-        app:boxCornerRadiusBottomEnd="12dp"
-        app:hintTextColor="@color/text_secondary">
+        app:boxCornerRadiusBottomEnd="12dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etPackageName"
@@ -51,7 +51,7 @@
             android:maxLines="1"
             android:minHeight="56dp"
             android:text="@string/default_package_name"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/on_surface"
             android:fontFamily="@font/poppins_regular"
             android:textSize="16sp"
             android:paddingHorizontal="16dp"
@@ -75,7 +75,7 @@
             android:layout_height="48dp"
             android:layout_marginEnd="8dp"
             android:text="@string/cancel"
-            android:textColor="@color/text_secondary"
+            android:textColor="@color/on_surface_variant"
             android:fontFamily="@font/poppins_medium"
             android:textSize="16sp"
             app:cornerRadius="12dp" />
@@ -86,7 +86,7 @@
             android:layout_width="wrap_content"
             android:layout_height="48dp"
             android:text="@string/ok"
-            android:textColor="@color/white"
+            android:textColor="@color/on_primary"
             android:fontFamily="@font/poppins_semibold"
             android:textSize="16sp"
             android:backgroundTint="@color/primary"

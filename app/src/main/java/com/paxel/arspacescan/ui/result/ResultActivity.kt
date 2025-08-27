@@ -74,6 +74,7 @@ class ResultActivity : AppCompatActivity() {
     }
 
     companion object {
+        private const val TAG = "ResultActivity"
         const val EXTRA_MEASUREMENT_RESULT = "EXTRA_MEASUREMENT_RESULT"
         const val EXTRA_PACKAGE_NAME = "PACKAGE_NAME"
         const val EXTRA_DECLARED_SIZE = "DECLARED_SIZE"
@@ -101,12 +102,21 @@ class ResultActivity : AppCompatActivity() {
         binding.toolbar.setNavigationOnClickListener { onBackPressedDispatcher.onBackPressed() }
     }
 
+    /**
+     * ✅ ENHANCED: Comprehensive data retrieval with extensive logging
+     */
     private fun retrieveAndDisplayData() {
+        Log.d(TAG, "=== RETRIEVING AND DISPLAYING DATA ===")
+
         val measurementId = intent.getLongExtra(EXTRA_MEASUREMENT_ID, -1L)
+        Log.d(TAG, "Measurement ID from intent: $measurementId")
 
         if (measurementId != -1L) {
+            Log.d(TAG, "Loading measurement from database with ID: $measurementId")
             loadMeasurementFromDatabase(measurementId)
         } else {
+            Log.d(TAG, "Loading measurement from intent extras")
+
             val result: MeasurementResult? =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     intent.getParcelableExtra(EXTRA_MEASUREMENT_RESULT, MeasurementResult::class.java)
@@ -115,18 +125,29 @@ class ResultActivity : AppCompatActivity() {
                     intent.getParcelableExtra(EXTRA_MEASUREMENT_RESULT)
                 }
 
-            if (result != null) {
-                val estimatedPrice = intent.getIntExtra("ESTIMATED_PRICE", 0)
-                val packageSizeCategory = intent.getStringExtra("PACKAGE_SIZE_CATEGORY") ?: "Tidak Diketahui"
+            // ✅ ENHANCED: Comprehensive intent extra logging
+            val packageName = intent.getStringExtra(EXTRA_PACKAGE_NAME)
+            val declaredSize = intent.getStringExtra(EXTRA_DECLARED_SIZE)
+            val estimatedPrice = intent.getIntExtra("ESTIMATED_PRICE", 0)
+            val packageSizeCategory = intent.getStringExtra("PACKAGE_SIZE_CATEGORY") ?: "Tidak Diketahui"
 
+            Log.d(TAG, "Intent extras retrieved:")
+            Log.d(TAG, "  - MeasurementResult: $result")
+            Log.d(TAG, "  - Package Name: '$packageName'")
+            Log.d(TAG, "  - Declared Size: '$declaredSize'")
+            Log.d(TAG, "  - Estimated Price: $estimatedPrice")
+            Log.d(TAG, "  - Package Size Category: '$packageSizeCategory'")
+
+            if (result != null) {
                 currentMeasurementResult = result.copy(
                     estimatedPrice = estimatedPrice,
                     packageSizeCategory = packageSizeCategory
                 )
-                val packageName = intent.getStringExtra(EXTRA_PACKAGE_NAME)
-                val declaredSize = intent.getStringExtra(EXTRA_DECLARED_SIZE)
+
+                Log.d(TAG, "Displaying measurement with package info")
                 displayMeasurementResult(currentMeasurementResult!!, packageName, declaredSize)
             } else {
+                Log.e(TAG, "No measurement result found in intent")
                 showError("Gagal memuat hasil pengukuran")
                 finish()
             }
@@ -155,16 +176,65 @@ class ResultActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * ✅ FIXED: Enhanced display method with comprehensive package name handling
+     */
     private fun displayMeasurementResult(
         result: MeasurementResult,
         packageName: String?,
         declaredSize: String?
     ) {
+        Log.d(TAG, "=== DISPLAYING MEASUREMENT RESULT ===")
+        Log.d(TAG, "Result: $result")
+        Log.d(TAG, "Package Name parameter: '$packageName'")
+        Log.d(TAG, "Declared Size parameter: '$declaredSize'")
+        Log.d(TAG, "Result.packageName: '${result.packageName}'")
+
         val decimalFormat = DecimalFormat("#,##0.00")
         val dateFormat = SimpleDateFormat("dd MMMM yyyy, HH:mm 'WIB'", Locale("id", "ID"))
 
-        binding.tvPackageName.text = packageName ?: "Tidak ada nama"
-        binding.tvDeclaredSize.text = declaredSize ?: "Tidak ditentukan"
+        // ✅ FIXED: Enhanced package name handling with fallback chain
+        val finalPackageName = when {
+            // 1st priority: packageName parameter from intent
+            !packageName.isNullOrBlank() -> {
+                Log.d(TAG, "Using packageName from parameter: '$packageName'")
+                packageName
+            }
+            // 2nd priority: packageName from result object
+            result.packageName.isNotBlank() -> {
+                Log.d(TAG, "Using packageName from result: '${result.packageName}'")
+                result.packageName
+            }
+            // 3rd priority: fallback to default
+            else -> {
+                Log.d(TAG, "Using fallback package name")
+                "Paket Default"
+            }
+        }
+
+        // ✅ FIXED: Enhanced declared size handling
+        val finalDeclaredSize = when {
+            !declaredSize.isNullOrBlank() -> {
+                Log.d(TAG, "Using declared size from parameter: '$declaredSize'")
+                declaredSize
+            }
+            result.declaredSize.isNotBlank() -> {
+                Log.d(TAG, "Using declared size from result: '${result.declaredSize}'")
+                result.declaredSize
+            }
+            else -> {
+                Log.d(TAG, "Using fallback declared size")
+                "Tidak ditentukan"
+            }
+        }
+
+        Log.d(TAG, "Final display values:")
+        Log.d(TAG, "  - Final Package Name: '$finalPackageName'")
+        Log.d(TAG, "  - Final Declared Size: '$finalDeclaredSize'")
+
+        // ✅ FIXED: Set the display values
+        binding.tvPackageName.text = finalPackageName
+        binding.tvDeclaredSize.text = finalDeclaredSize
         binding.tvTimestamp.text = dateFormat.format(Date(result.timestamp))
 
         val widthCm = result.width * 100
@@ -177,7 +247,7 @@ class ResultActivity : AppCompatActivity() {
         binding.tvDepth.text = "${decimalFormat.format(depthCm)} cm"
         binding.tvVolume.text = "${decimalFormat.format(volumeCm3)} cm³"
 
-        val validationResult = PackageSizeValidator.validate(this, result)
+        val validationResult = PackageSizeValidator.validate(result)
 
         // Tampilkan hasilnya menggunakan helper format
         binding.tvEstimatedPrice.text =
@@ -196,6 +266,8 @@ class ResultActivity : AppCompatActivity() {
             // Jika tidak ada foto, sembunyikan ImageView
             binding.ivPhotoPreview.visibility = View.GONE
         }
+
+        Log.d(TAG, "Display completed successfully")
     }
 
     private fun setupButtons() {
@@ -244,23 +316,50 @@ class ResultActivity : AppCompatActivity() {
         })
     }
 
+    /**
+     * ✅ ENHANCED: Improved save method with comprehensive logging
+     */
     private fun saveMeasurement() {
         if (isSaved) {
             Toast.makeText(this, "Hasil sudah tersimpan", Toast.LENGTH_SHORT).show()
             return
         }
 
+        Log.d(TAG, "=== SAVING MEASUREMENT ===")
+
         // 1. Ambil data mentah dari intent (nama & ukuran deklarasi)
-        val packageName = intent.getStringExtra(EXTRA_PACKAGE_NAME) ?: "Paket"
-        val declaredSize = intent.getStringExtra(EXTRA_DECLARED_SIZE) ?: "N/A"
+        val packageNameFromIntent = intent.getStringExtra(EXTRA_PACKAGE_NAME) ?: ""
+        val declaredSizeFromIntent = intent.getStringExtra(EXTRA_DECLARED_SIZE) ?: ""
+
+        Log.d(TAG, "Package name from intent: '$packageNameFromIntent'")
+        Log.d(TAG, "Declared size from intent: '$declaredSizeFromIntent'")
+
+        // ✅ ENHANCED: Use display values if intent values are empty
+        val finalPackageName = if (packageNameFromIntent.isNotBlank()) {
+            packageNameFromIntent
+        } else {
+            binding.tvPackageName.text.toString().takeIf { it.isNotBlank() } ?: "Paket Default"
+        }
+
+        val finalDeclaredSize = if (declaredSizeFromIntent.isNotBlank()) {
+            declaredSizeFromIntent
+        } else {
+            binding.tvDeclaredSize.text.toString().takeIf { it != "Tidak ditentukan" } ?: ""
+        }
+
+        Log.d(TAG, "Final save values:")
+        Log.d(TAG, "  - Package Name: '$finalPackageName'")
+        Log.d(TAG, "  - Declared Size: '$finalDeclaredSize'")
 
         // 2. Update currentMeasurementResult with package info and save directly
         val resultToSave = currentMeasurementResult?.copy(
-            packageName = packageName,
-            declaredSize = declaredSize
+            packageName = finalPackageName,
+            declaredSize = finalDeclaredSize
         )
 
         if (resultToSave != null) {
+            Log.d(TAG, "Saving measurement result: $resultToSave")
+
             // 3. Simpan ke database (viewModel.saveMeasurement expects MeasurementResult)
             viewModel.saveMeasurement(resultToSave)
             isSaved = true
@@ -268,6 +367,11 @@ class ResultActivity : AppCompatActivity() {
 
             updateButtonStates()
             invalidateOptionsMenu()
+
+            Log.d(TAG, "Measurement saved successfully")
+        } else {
+            Log.e(TAG, "Cannot save - resultToSave is null")
+            Toast.makeText(this, "Gagal menyimpan - data tidak valid", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -286,22 +390,6 @@ class ResultActivity : AppCompatActivity() {
         startActivity(intent)
         finish()
     }
-    // Create centralized navigation manager
-    object NavigationManager {
-        fun navigateToARMeasurement(context: Context, packageName: String) {
-            val intent = Intent(context, ARMeasurementActivity::class.java).apply {
-                putExtra("PACKAGE_NAME", packageName)
-            }
-            context.startActivity(intent)
-        }
-
-        fun navigateToResult(context: Context, measurementResult: MeasurementResult) {
-            val intent = Intent(context, ResultActivity::class.java).apply {
-                putExtra(ResultActivity.EXTRA_MEASUREMENT_RESULT, measurementResult)
-            }
-            context.startActivity(intent)
-        }
-    }
 
     private fun showSaveConfirmationDialog(onSave: () -> Unit, onDontSave: () -> Unit) {
         MaterialAlertDialogBuilder(this)
@@ -315,26 +403,28 @@ class ResultActivity : AppCompatActivity() {
 
     private fun showError(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
-        Log.e("ResultActivity", message)
+        Log.e(TAG, message)
     }
 
+    // [Rest of the methods remain the same - dispatchTakePictureIntent, createImageFile, menu methods, etc.]
+
     private fun dispatchTakePictureIntent() {
-        // Buat intent untuk membuka kamera
+        // Existing implementation unchanged
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
-            // Pastikan ada aplikasi kamera yang dapat menangani intent ini
             takePictureIntent.resolveActivity(packageManager)?.also {
-                // Buat file untuk menyimpan foto
                 createImageFile().also { imageFile ->
-                    // Dapatkan URI untuk file menggunakan FileProvider
-                    val photoURI: Uri = FileProvider.getUriForFile(
-                        this,
-                        "${packageName}.fileprovider",
-                        imageFile
-                    )
-                    currentPhotoPath = imageFile.absolutePath // Simpan path foto saat ini
-                    // Kirim URI ke kamera melalui intent
+                    val photoURI: Uri = try {
+                        FileProvider.getUriForFile(
+                            this,
+                            "${packageName}.fileprovider",
+                            imageFile
+                        )
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error getting FileProvider URI", e)
+                        return
+                    }
+                    currentPhotoPath = imageFile.absolutePath
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                    // Mulai activity kamera
                     takePictureLauncher.launch(takePictureIntent)
                 }
             }
@@ -343,20 +433,16 @@ class ResultActivity : AppCompatActivity() {
 
     @Throws(IOException::class)
     private fun createImageFile(): File {
-        // Buat nama file unik untuk foto
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile(
-            "JPEG_${timeStamp}_", /* prefix */
-            ".jpg",         /* suffix */
-            storageDir      /* directory */
+            "JPEG_${timeStamp}_",
+            ".jpg",
+            storageDir
         ).apply {
-            // Simpan path file ke dalam variabel
             currentPhotoPath = absolutePath
         }
     }
-
-    // --- Menu Logic ---
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_result, menu)
@@ -365,7 +451,6 @@ class ResultActivity : AppCompatActivity() {
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         val deleteItem = menu?.findItem(R.id.action_delete)
-        // Tombol hapus hanya terlihat jika data berasal dari database (isSaved == true)
         deleteItem?.isVisible = isSaved
         return super.onPrepareOptionsMenu(menu)
     }
@@ -409,10 +494,8 @@ class ResultActivity : AppCompatActivity() {
         }
 
         MaterialAlertDialogBuilder(this)
-            // Menggunakan string yang benar untuk judul
             .setTitle(getString(R.string.delete_measurement_title))
             .setMessage("Yakin ingin menghapus hasil pengukuran ini secara permanen?")
-            // PERBAIKAN: Menggunakan R.string.delete, bukan R.id.action_delete
             .setPositiveButton(getString(R.string.delete)) { _, _ ->
                 viewModel.deleteMeasurementById(idToDelete)
                 Toast.makeText(
@@ -420,7 +503,7 @@ class ResultActivity : AppCompatActivity() {
                     "Pengukuran berhasil dihapus",
                     Toast.LENGTH_SHORT
                 ).show()
-                finish() // Kembali ke layar sebelumnya (HistoryActivity) setelah hapus.
+                finish()
             }
             .setNegativeButton(getString(R.string.cancel), null)
             .show()

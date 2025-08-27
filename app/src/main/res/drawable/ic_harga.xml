@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vector drawable: price/tag icon (tintable) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- tag shape (based on material 'local_offer') -->
+    <path
+        android:fillColor="#1B591C"
+        android:pathData="M20.59,13.41 L11.17,4 L4,4 L4,11.17 L13.41,20.59 L20.59,13.41 z"
+        android:fillAlpha="1"/>
+
+    <!-- hole in the tag -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M7.5,7.5 A1.5,1.5 0 1,0 7.5,4.5 A1.5,1.5 0 0,0 7.5,7.5 z"
+        android:fillAlpha="1"/>
+</vector>

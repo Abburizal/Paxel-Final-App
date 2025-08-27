@@ -3,7 +3,7 @@
     <!-- ==================== MATERIAL DESIGN 3 COLORS ==================== -->
 
     <!-- Primary Color System -->
-    <color name="primary">#6638E2</color>
+    <color name="primary">#4b417f</color>
     <color name="on_primary">#FFFFFF</color>
     <color name="primary_container">#E5DEFF</color>
     <color name="on_primary_container">#21005D</color>
@@ -253,7 +253,7 @@
     <color name="bg_bottom_sheet">@color/white</color>
 
     <!-- Gradient Colors -->
-    <color name="gradient_start">#6638E2</color>
-    <color name="gradient_end">#8B5EFF</color>
+    <color name="gradient_start">#FFF8F5</color>
+    <color name="gradient_end">#FFF8F5</color>
 
 </resources>

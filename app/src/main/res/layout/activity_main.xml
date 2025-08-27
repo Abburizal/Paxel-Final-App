@@ -23,7 +23,7 @@
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:layout_marginTop="@dimen/spacing_md"
-            app:cardBackgroundColor="@color/white"
+            app:cardBackgroundColor="@color/primary_container"
             app:cardCornerRadius="24dp"
             app:cardElevation="@dimen/elevation_high"
             app:strokeWidth="0dp"
@@ -65,7 +65,7 @@
                 android:fontFamily="@font/poppins_bold"
                 android:letterSpacing="0.02"
                 android:text="@string/app_name"
-                android:textColor="@color/white"
+                android:textColor="@color/on_primary_container"
                 android:textSize="28sp" />
 
             <TextView
@@ -79,7 +79,7 @@
                 android:gravity="center"
                 android:lineSpacingExtra="4dp"
                 android:text="@string/main_title"
-                android:textColor="@color/ar_surface_indicator"
+                android:textColor="@color/on_surface"
                 android:textSize="14sp" />
 
         </LinearLayout>
@@ -131,7 +131,7 @@
                                 android:layout_gravity="center"
                                 android:src="@drawable/ic_3d_rotation"
                                 app:tint="@color/white"
-                                android:contentDescription="AR Measurement Icon" />
+                                android:contentDescription="@string/icon_ar_measurement" />
 
                         </com.google.android.material.card.MaterialCardView>
 
@@ -158,7 +158,7 @@
                             android:layout_width="48dp"
                             android:layout_height="48dp"
                             android:layout_marginEnd="@dimen/spacing_md"
-                            app:cardBackgroundColor="@color/secondary"
+                            app:cardBackgroundColor="@color/ar_preview_color_valid"
                             app:cardCornerRadius="12dp"
                             app:cardElevation="0dp">
 
@@ -168,7 +168,7 @@
                                 android:layout_gravity="center"
                                 android:src="@drawable/ic_local_shipping"
                                 app:tint="@color/white"
-                                android:contentDescription="Price Estimation Icon" />
+                                android:contentDescription="@string/icon_price_estimation" />
 
                         </com.google.android.material.card.MaterialCardView>
 
@@ -195,7 +195,7 @@
                             android:layout_width="48dp"
                             android:layout_height="48dp"
                             android:layout_marginEnd="@dimen/spacing_md"
-                            app:cardBackgroundColor="@color/tertiary"
+                            app:cardBackgroundColor="@color/ar_preview_color"
                             app:cardCornerRadius="12dp"
                             app:cardElevation="0dp">
 
@@ -205,7 +205,7 @@
                                 android:layout_gravity="center"
                                 android:src="@drawable/ic_history"
                                 app:tint="@color/white"
-                                android:contentDescription="History Tracking Icon" />
+                                android:contentDescription="@string/icon_history_tracking" />
 
                         </com.google.android.material.card.MaterialCardView>
 
@@ -276,7 +276,8 @@
                 app:iconSize="24dp"
                 app:iconTint="@color/white"
                 app:strokeColor="@color/white"
-                app:strokeWidth="2dp" />
+                app:strokeWidth="2dp"
+                android:backgroundTint="@color/warning" />
 
         </LinearLayout>
 
@@ -301,7 +302,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"
                 android:text="@string/about_app"
-                android:textColor="@color/white"
+                android:textColor="@color/dark_primary_container"
                 android:fontFamily="@font/poppins_medium"
                 android:textSize="14sp"
                 android:alpha="0.85"
@@ -309,7 +310,7 @@
                 app:iconGravity="textStart"
                 app:iconPadding="@dimen/spacing_xs"
                 app:iconSize="20dp"
-                app:iconTint="@color/white" />
+                app:iconTint="@color/button_pressed" />
 
             <!-- Version Info -->
             <TextView
@@ -318,7 +319,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/spacing_sm"
                 android:text="@string/version_info"
-                android:textColor="@color/white"
+                android:textColor="@color/primary_700"
                 android:fontFamily="@font/poppins_regular"
                 android:textSize="12sp"
                 android:alpha="0.6" />

@@ -99,7 +99,6 @@
 
 # Gson (for JSON processing)
 -keepattributes Signature
--keep class sun.misc.Unsafe { *; }
 -keep class com.google.gson.** { *; }
 
 # ARCore specific rules
