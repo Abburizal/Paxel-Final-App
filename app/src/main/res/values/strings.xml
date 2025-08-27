@@ -4,6 +4,10 @@
     <string name="app_name">Paxel AR Validator</string>
     <string name="app_title_spacescan">Paxel AR SpaceScan</string>
     <string name="version_info">Versi 1.0.0</string>
+    <string name="about_title">Tentang Aplikasi</string>
+    <string name="ar_measurement_icon">Ikon pengukuran AR</string>
+    <string name="history">Riwayat</string>
+    <string name="help">Bantuan</string>
 
     <!-- Main Activity -->
     <string name="main_title">Ukur paket dengan teknologi AR</string>
@@ -31,6 +35,23 @@
     <string name="submit">Lanjutkan</string>
     <string name="cancel">Batal</string>
 
+    <!-- Search & History -->
+    <string name="search_hint">Cari nama paket...</string>
+    <string name="no_search_results">Tidak ada hasil pencarian</string>
+    <string name="empty_history_title">Belum Ada Riwayat</string>
+    <string name="empty_history_subtitle">Mulai pengukuran pertama Anda untuk melihat riwayat di sini</string>
+    <string name="start_first_measurement">Mulai Pengukuran Pertama</string>
+    <string name="export_csv">Ekspor ke CSV</string>
+    <string name="delete_all">Hapus Semua</string>
+
+    <!-- AR Measurement Instructions -->
+    <string name="instruction_step_1">Ketuk untuk menandai titik pertama sudut alas paket</string>
+    <string name="instruction_step_2">Ketuk untuk menandai titik kedua sudut alas paket</string>
+    <string name="instruction_step_3">Ketuk untuk menandai titik ketiga sudut alas paket</string>
+    <string name="instruction_step_4">Ketuk untuk menandai titik keempat sudut alas paket</string>
+    <string name="instruction_set_height">Geser ke atas untuk mengatur tinggi paket</string>
+    <string name="instruction_measurement_complete">Pengukuran selesai! Periksa hasil pengukuran</string>
+
     <!-- Result Activity -->
     <string name="measurement_results">Hasil Pengukuran</string>
     <string name="package_info">Informasi Paket</string>
@@ -47,11 +68,29 @@
     <string name="btn_save">Simpan Hasil</string>
     <string name="btn_new_measurement">Ukur Baru</string>
 
+    <!-- Result Activity Status -->
+    <string name="photo_saved">Foto berhasil disimpan</string>
+    <string name="status_saved">Tersimpan</string>
+    <string name="delete_measurement_title">Hapus Pengukuran</string>
+
+    <!-- Menu Items -->
+    <string name="menu_settings">Pengaturan</string>
+    <string name="menu_about">Tentang</string>
+    <string name="menu_settings_full">Pengaturan Aplikasi</string>
+    <string name="menu_about_full">Tentang Aplikasi</string>
+
     <!-- Default values -->
     <string name="default_measurement">0.00 cm</string>
     <string name="default_volume">0.00 cm³</string>
     <string name="default_price">Rp0</string>
     <string name="tidak_ditentukan">Tidak ditentukan</string>
+
+    <!-- About Information -->
+    <string name="developer_info">Dikembangkan oleh Abburizal Chillihyat 10118122</string>
+    <string name="copyright_info">© 2025 Paxel. Semua hak dilindungi.</string>
+    <string name="privacy_policy">Kebijakan Privasi</string>
+    <string name="contact_support">Hubungi Dukungan</string>
+    <string name="app_description">Paxel AR Validator adalah aplikasi inovatif yang menggunakan teknologi Augmented Reality (AR) untuk mengukur dimensi paket dengan akurasi tinggi. Dengan teknologi canggih ini, Anda dapat mengukur panjang, lebar, tinggi, dan volume paket secara real-time hanya menggunakan kamera smartphone. Aplikasi ini dilengkapi dengan fitur estimasi harga pengiriman otomatis, penyimpanan riwayat pengukuran, dan kemampuan export data untuk memudahkan pengelolaan logistik Anda. Solusi digital yang sempurna untuk optimalisasi proses pengiriman paket di era modern.</string>
 
     <!-- Common Actions -->
     <string name="ok">OK</string>
@@ -86,4 +125,8 @@
     <string name="processing">Memproses...</string>
     <string name="saving">Menyimpan...</string>
     <string name="calculating">Menghitung...</string>
+
+    <!-- Additional Icon Resource -->
+    <string name="ic_check">Centang</string>
+
 </resources>

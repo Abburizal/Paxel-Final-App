@@ -22,6 +22,7 @@
 
     <!-- Error Color System -->
     <color name="error">#BA1A1A</color>
+    <color name="error_dark">#8E0000</color>
     <color name="on_error">#FFFFFF</color>
     <color name="error_container">#FFDAD6</color>
     <color name="on_error_container">#410002</color>
@@ -34,7 +35,7 @@
     <color name="surface_variant">#F2F0F4</color>
     <color name="on_surface_variant">#49454F</color>
 
-    <!-- Surface Elevation Colors (Missing from previous version) -->
+    <!-- Surface Elevation Colors -->
     <color name="surface_elevated">#F6F2FF</color>
     <color name="surface_elevation_1">#F6F2FF</color>
     <color name="surface_elevation_2">#F1ECFF</color>
@@ -45,6 +46,11 @@
     <color name="outline_variant">#CAC4D0</color>
 
     <!-- ==================== PAXEL BRAND COLOR PALETTE ==================== -->
+
+    <!-- Paxel Brand Colors -->
+    <color name="paxel_red">#E53935</color>
+    <color name="paxel_red_dark">#C62828</color>
+    <color name="paxel_red_light">#FFCDD2</color>
 
     <!-- Primary Purple Variations -->
     <color name="primary_dark">#4A2BC4</color>
@@ -129,7 +135,6 @@
     <color name="text_hint">#BDBDBD</color>
 
     <!-- ==================== MEASUREMENT SPECIFIC COLORS ==================== -->
-    <!-- Colors referenced in original styles.xml -->
     <color name="measurement_label">#49454F</color>
     <color name="measurement_value">#1C1B1F</color>
 
@@ -150,6 +155,8 @@
     <color name="card_background">#FFFFFF</color>
     <color name="card_stroke">#E0E0E0</color>
     <color name="surface_disabled">#F5F5F5</color>
+    <color name="surface_cream">#FFFBF8</color>
+    <color name="background_cream">#FFF8F5</color>
 
     <!-- Dividers -->
     <color name="divider">#E0E0E0</color>
@@ -160,6 +167,9 @@
     <color name="button_disabled">#F5F5F5</color>
     <color name="button_pressed">#4A2BC4</color>
     <color name="button_text_disabled">#BDBDBD</color>
+    <color name="button_primary_text">#FFFFFF</color>
+    <color name="button_secondary_bg">#F8F9FA</color>
+    <color name="button_secondary_text">#6C757D</color>
 
     <!-- Input Fields -->
     <color name="input_background">#FFFFFF</color>
@@ -232,9 +242,6 @@
     <color name="dark_surface_variant">#49454F</color>
     <color name="dark_on_surface_variant">#CAC4D0</color>
 
-    <color name="surface_cream">#FFFBF8</color>
-    <color name="background_cream">#FFF8F5</color>
-
     <!-- Accent Colors -->
     <color name="accent_highlight">#FF6B35</color>
     <color name="accent_secondary">#4ECDC4</color>
@@ -244,11 +251,6 @@
     <color name="bg_timestamp">#E8F4FD</color>
     <color name="bg_handle">#E0E0E0</color>
     <color name="bg_bottom_sheet">@color/white</color>
-
-    <!-- Button Colors -->
-    <color name="button_primary_text">@color/white</color>
-    <color name="button_secondary_bg">#F8F9FA</color>
-    <color name="button_secondary_text">#6C757D</color>
 
     <!-- Gradient Colors -->
     <color name="gradient_start">#6638E2</color>

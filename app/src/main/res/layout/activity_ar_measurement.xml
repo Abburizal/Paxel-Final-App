@@ -45,9 +45,9 @@
             android:text="Gerakkan perangkat untuk mendeteksi permukaan"
             android:textColor="@android:color/white"
             android:textSize="14sp"
-            app:drawableTopCompat="@drawable/ic_move_device"
+            android:drawableTop="@drawable/ic_move_device"
             android:drawablePadding="8dp"
-            app:drawableTintCompat="@android:color/white" />
+            android:drawableTint="@android:color/white"/>
 
     </com.google.android.material.card.MaterialCardView>
 

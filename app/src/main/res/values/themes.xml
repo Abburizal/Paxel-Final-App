@@ -58,7 +58,7 @@
     <!-- Splash Screen Theme -->
     <style name="Theme.PaxelARValidator.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/primary</item>
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_paxel_logo</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
         <item name="windowSplashScreenAnimationDuration">1000</item>
         <item name="postSplashScreenTheme">@style/Theme.PaxelARValidator</item>
     </style>

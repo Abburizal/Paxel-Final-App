@@ -25,6 +25,13 @@
         <item name="android:letterSpacing">0.0</item>
     </style>
 
+    <style name="TextAppearance.PaxelAR.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:textSize">24sp</item>
+        <item name="android:lineSpacingExtra">6sp</item>
+        <item name="android:letterSpacing">0.0</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
     <!-- Title Styles -->
     <style name="TextAppearance.PaxelAR.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
         <item name="android:textSize">22sp</item>
@@ -51,11 +58,27 @@
         <item name="android:letterSpacing">0.017857143</item>
     </style>
 
+    <style name="TextAppearance.PaxelAR.BodySmall" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textSize">12sp</item>
+        <item name="android:lineSpacingExtra">4sp</item>
+        <item name="android:letterSpacing">0.033333333</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
     <!-- Label Styles -->
     <style name="TextAppearance.PaxelAR.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
         <item name="android:textSize">14sp</item>
         <item name="android:lineSpacingExtra">6sp</item>
         <item name="android:letterSpacing">0.007142857</item>
+    </style>
+
+    <!-- Caption Style -->
+    <style name="TextAppearance.PaxelAR.Caption" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textSize">11sp</item>
+        <item name="android:lineSpacingExtra">4sp</item>
+        <item name="android:letterSpacing">0.045454545</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">@color/text_secondary</item>
     </style>
 
     <!-- ========================= -->

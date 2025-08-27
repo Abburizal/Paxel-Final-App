@@ -15,8 +15,6 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -56,7 +54,7 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.6.2")
     implementation("androidx.activity:activity-ktx:1.8.2")
 
-    // Splash Screen API - TAMBAHAN BARU
+    // Splash Screen API
     implementation("androidx.core:core-splashscreen:1.0.1")
 
     // Material Design
@@ -87,14 +85,4 @@ dependencies {
     implementation("com.airbnb.android:lottie:6.2.0")
     implementation("com.karumi:dexter:6.2.3")
     implementation("com.github.bumptech.glide:glide:4.16.0")
-
-    // Testing
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("androidx.arch.core:core-testing:2.2.0")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
-
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation("androidx.test:core:1.5.0")
-
 }
