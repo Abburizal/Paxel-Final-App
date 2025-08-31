@@ -86,8 +86,8 @@ class MeasurementArFragment : ArFragment() {
         // ✅ CRITICAL: Light estimation MUST be disabled (prevents crashes)
         config.lightEstimationMode = Config.LightEstimationMode.DISABLED
 
-        // ✅ MEASUREMENT: Enable both horizontal and vertical planes
-        config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
+        // ✅ PERBAIKAN: Fokus pada bidang HORIZONTAL untuk stabilitas pengukuran di lantai/meja
+        config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL
 
         // ✅ PERFORMANCE: Latest camera image for better tracking
         config.updateMode = Config.UpdateMode.LATEST_CAMERA_IMAGE
@@ -105,16 +105,9 @@ class MeasurementArFragment : ArFragment() {
             Log.w(TAG, "Depth mode not supported on this device", e)
         }
 
-        // ✅ STABILITY: Plane detection tuning
-        try {
-            config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
-        } catch (e: Exception) {
-            Log.w(TAG, "Failed to set enhanced plane finding", e)
-            config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL
-        }
-
-        Log.d(TAG, "Optimal configuration applied: lightEst=DISABLED, planes=H+V, update=LATEST, focus=AUTO")
+        Log.d(TAG, "Optimal configuration applied: lightEst=DISABLED, planes=HORIZONTAL, update=LATEST, focus=AUTO")
     }
+
 
     /**
      * ✅ FALLBACK: Reduced functionality but more stable

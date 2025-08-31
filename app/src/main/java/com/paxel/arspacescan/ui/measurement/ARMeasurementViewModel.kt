@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.math.max
+import java.util.IllegalFormatConversionException
 
 class ARMeasurementViewModel : ViewModel() {
 
@@ -64,6 +65,12 @@ class ARMeasurementViewModel : ViewModel() {
                     Log.d(TAG, "Measurement already completed, ignoring tap")
                 }
             }
+        } catch (e: IllegalFormatConversionException) {
+            Log.e(TAG, "Format conversion error in AR tap", e)
+            showWarningMessage("Error format data pengukuran")
+        } catch (e: ArithmeticException) {
+            Log.e(TAG, "Math calculation error in AR tap", e)
+            showWarningMessage("Error perhitungan matematika")
         } catch (e: Exception) {
             Log.e(TAG, "Error handling AR tap", e)
             showWarningMessage("Gagal memproses tap AR: ${e.message}")
@@ -106,6 +113,12 @@ class ARMeasurementViewModel : ViewModel() {
                     isUndoEnabled = true
                 )
             }
+        } catch (e: IllegalFormatConversionException) {
+            Log.e(TAG, "Format conversion error in defineBase", e)
+            showWarningMessage("Error format data titik base")
+        } catch (e: ArithmeticException) {
+            Log.e(TAG, "Math calculation error in defineBase", e)
+            showWarningMessage("Error perhitungan koordinat")
         } catch (e: Exception) {
             Log.e(TAG, "Error defining base", e)
             showWarningMessage("Gagal menambah titik base: ${e.message}")
@@ -122,6 +135,9 @@ class ARMeasurementViewModel : ViewModel() {
 
             Log.d(TAG, "Confirming height: $height meters")
             completeMeasurement(currentState.corners, height)
+        } catch (e: ArithmeticException) {
+            Log.e(TAG, "Math calculation error in confirmHeight", e)
+            showWarningMessage("Error perhitungan tinggi")
         } catch (e: Exception) {
             Log.e(TAG, "Error confirming height", e)
             showWarningMessage("Gagal mengkonfirmasi tinggi: ${e.message}")
@@ -163,6 +179,9 @@ class ARMeasurementViewModel : ViewModel() {
             clearWarningMessage()
             Log.d(TAG, "Measurement completed successfully")
 
+        } catch (e: ArithmeticException) {
+            Log.e(TAG, "Math calculation error in completeMeasurement", e)
+            showWarningMessage("Error perhitungan pengukuran")
         } catch (e: Exception) {
             Log.e(TAG, "Error completing measurement", e)
             showWarningMessage("Gagal menyelesaikan pengukuran: ${e.message}")
@@ -225,16 +244,33 @@ class ARMeasurementViewModel : ViewModel() {
 
     private fun validateBaseShape(corners: List<Vector3>) {
         try {
+            // ✅ VALIDASI: Pastikan ada cukup titik untuk validasi
+            if (corners.size < 3) {
+                Log.w(TAG, "Not enough corners for validation: ${corners.size}")
+                return
+            }
+
             val validationResult = AngleValidator.validateBaseAngles(corners)
             if (!validationResult.isValid) {
-                val badAngles = validationResult.problematicAngles.joinToString("°, ") { "%.0f".format(it) }
-                val warningMessage = "Perhatian: Sudut alas tidak presisi (sekitar ${badAngles}°). Hasil mungkin kurang akurat."
+                // ✅ PERBAIKAN: Format yang benar untuk nilai Float
+                val badAngles = validationResult.problematicAngles
+                val anglesText = badAngles.joinToString(", ") { angle ->
+                    String.format("%.1f°", angle.toFloat())
+                }
+                val warningMessage = "Perhatian: Sudut alas tidak presisi (sekitar $anglesText). Hasil mungkin kurang akurat."
                 showWarningMessage(warningMessage)
             } else {
                 clearWarningMessage()
             }
+        } catch (e: IllegalFormatConversionException) {
+            Log.e(TAG, "Format conversion error in validateBaseShape", e)
+            showWarningMessage("Error format sudut: pastikan nilai sudut valid")
+        } catch (e: ArithmeticException) {
+            Log.e(TAG, "Math calculation error in validateBaseShape", e)
+            showWarningMessage("Error perhitungan sudut")
         } catch (e: Exception) {
             Log.e(TAG, "Error validating base shape", e)
+            showWarningMessage("Error validasi bentuk dasar")
         }
     }
 

@@ -7,7 +7,8 @@ pluginManagement {
                 includeGroupByRegex("androidx.*")
             }
         }
-        mavenCentral()
+        mavenCentral() // <-- Added as requested
+        maven { url = uri("https://jitpack.io") } // <-- Added for Sceneform plugin
         gradlePluginPortal()
     }
 }
@@ -15,9 +16,10 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
-        mavenCentral()
+        mavenCentral() // <-- Added as requested
+        maven { url = uri("https://jitpack.io") } // <-- Added for Sceneform plugin
     }
 }
 
-rootProject.name = "Paxel AR Validator"
+rootProject.name = "Paxel AR Space Scan"
 include(":app")
